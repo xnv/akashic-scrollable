@@ -119,18 +119,13 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	 */
 	insetBars?: boolean;
 
-	/**
-	 * The image of the scrollbar.
-	 *
-	 */
-	barImage?: g.Asset | g.Surface | string;
-
+	// (For future extension...)
 	// inertialScroll?: boolean;  // | InertialScrollPolicy
-	// fuzzyDirectionLock?: boolean;  // as a future extension?
+	// fuzzyDirectionLock?: boolean;
 }
 
 export class Scrollable extends g.E {
-	// TODO should share? but how? multiple game instances should be considered.
+	// TODO images should be shared to reduce memory consumption? but how? multiple game instances should be considered.
 	private _bgImage: g.Surface;
 	private _barImage: g.Surface;
 
@@ -165,6 +160,8 @@ export class Scrollable extends g.E {
 	private _lastNotifiedHorizontalRate: number;
 	private _deltaX: number;
 	private _deltaY: number;
+	private _apiRequestedOffsetX: number;
+	private _apiRequestedOffsetY: number;
 	private _beforeWidth: number;
 	private _beforeHeight: number;
 
@@ -174,13 +171,20 @@ export class Scrollable extends g.E {
 
 	// TODO getter/setter in percent
 
-	// get scrollOffsetY() {
-	// 	return this._scrollOffsetY;
-	// }
+	get scrollOffsetX() { return -this._contentContainer.offsetContainer().x; }
+	get scrollOffsetY() { return -this._contentContainer.offsetContainer().y; }
 
-	// set scrollOffsetY(y: number) {
-	// 	return this._scrollOffsetY = y;
-	// }
+	set scrollOffsetX(x: number) {
+		this._apiRequestedOffsetX = -x;
+		this._requestUpdateContentScroll();
+		this._requestUpdateScrollbar();
+	}
+
+	set scrollOffsetY(y: number) {
+		this._apiRequestedOffsetY = -y;
+		this._requestUpdateContentScroll();
+		this._requestUpdateScrollbar();
+	}
 
 	constructor(param: ScrollableParameterObject) {
 		super(param);
@@ -235,6 +239,8 @@ export class Scrollable extends g.E {
 		this._lastNotifiedHorizontalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
+		this._apiRequestedOffsetX = null;
+		this._apiRequestedOffsetY = null;
 		this._beforeWidth = param.width;
 		this._beforeHeight = param.height;
 
@@ -422,21 +428,27 @@ export class Scrollable extends g.E {
 		const hrate = this._lastNotifiedHorizontalRate;
 		const dx = this._deltaX;
 		const dy = this._deltaY;
+		const ox = this._apiRequestedOffsetX;
+		const oy = this._apiRequestedOffsetY;
 		this._lastNotifiedVerticalRate = null;
 		this._lastNotifiedHorizontalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
+		this._apiRequestedOffsetX = null;
+		this._apiRequestedOffsetY = null;
 
 		if (this._isHorizontal) {
 			const x0 = offsetContainer.x;
-			const x1raw = (dx !== 0) ? (x0 + dx) : ((hrate != null) ? (-hrate * this._contentBoundingWidth) : x0);
+			const x1base = (ox != null) ? ox : x0;
+			const x1raw = (dx !== 0) ? (x1base + dx) : ((hrate != null) ? (-hrate * this._contentBoundingWidth) : x1base);
 			const x1 = Math.max(Math.min(x1raw, 0), Math.min(this.width - this._contentBoundingWidth, 0));
 			offsetContainer.x = x1;
 			this._renderOffsetX += (offsetContainer.x - x0);
 		}
 		if (this._isVertical) {
 			const y0 = offsetContainer.y;
-			const y1raw = (dy !== 0) ? (y0 + dy) : ((vrate != null) ? (-vrate * this._contentBoundingHeight) : y0);
+			const y1base = (oy != null) ? oy : y0;
+			const y1raw = (dy !== 0) ? (y1base + dy) : ((vrate != null) ? (-vrate * this._contentBoundingHeight) : y1base);
 			const y1 = Math.max(Math.min(y1raw, 0), Math.min(this.height - this._contentBoundingHeight, 0));
 			offsetContainer.y = y1;
 			this._renderOffsetY += y1 - y0;
