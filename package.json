@@ -1,8 +1,8 @@
 {
   "name": "@xnv/akashic-scrollable",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "description": "Scrolling/clipping for Akashic Engine",
-  "typings": "lib/index.d.js",
+  "typings": "lib/index.d.ts",
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "npm run build",
@@ -14,8 +14,9 @@
   "author": "xnv",
   "license": "MIT",
   "files": [
-    "lib",
-    "index.js"
+    "README.md",
+    "package.json",
+    "lib"
   ],
   "repository": {
     "type": "git",
