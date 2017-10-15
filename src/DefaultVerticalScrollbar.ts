@@ -1,11 +1,23 @@
 import { ScrollbarOperations } from "./ScrollbarLike";
 
+/**
+ * The type of the argument of `new DefaultVerticalScrollbar()`.
+ *
+ * `new DefaultVerticalScrollbar()` の引数の型。
+ */
 export interface DefaultVerticalScrollbarParameterObject {
 	scene: g.Scene;
 	bgImage?: g.Surface;
 	image: g.Surface;
 }
 
+/**
+ * The default vertical scrollbar entity.
+ * Takes two images (as background and bar itself), use them in nine-patched style.
+ *
+ * デフォルトの縦スクロールバー。
+ * 二つの画像(背景用・バー用)をとり、9パッチで拡大して利用する。
+ */
 export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperations {
 	onChangeBarPositionRate: g.Trigger<number>;
 	private _bar: g.Pane;

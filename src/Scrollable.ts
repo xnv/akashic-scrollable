@@ -47,6 +47,11 @@ export class ScrolledContentContainer extends g.E {
 	}
 }
 
+/**
+ * The type of the argument of `new Scrollable()`.
+ *
+ * `new Scrollable()` の引数の型。
+ */
 export interface ScrollableParameterObject extends g.EParameterObject {
 	/**
 	 * The width of this entity and the width of the scrolled area.
@@ -98,15 +103,6 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	touchScroll?: boolean;
 
 	/**
-	 * The width of the scrollbar.
-	 * If not specified, `5`.
-	 *
-	 * スクロールバーの幅。
-	 * 省略された場合、 `5` 。
-	 */
-	barWidth?: number;
-
-	/**
 	 * Inset the scollbars or not.
 	 * If `true`, the scrollbars are shown inside the entity's rectangle defined by `this.width` and `this.height`.
 	 * Note when this value is `false`, this entity renders outside of the rectangle.
@@ -124,6 +120,13 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	// fuzzyDirectionLock?: boolean;
 }
 
+/**
+ * The entity class that provide scrolling/clipping.
+ * Any children of `this.content` are clipped and able to be scrolled by the scrollbars.
+ *
+ * スクロール・クリッピング機能を提供するエンティティ。
+ * `this.content` の子孫エンティティはクリッピングされ、スクロールバーでスクロールできる。
+ */
 export class Scrollable extends g.E {
 	// TODO images should be shared to reduce memory consumption? but how? multiple game instances should be considered.
 	private _bgImage: g.Surface;
@@ -164,27 +167,79 @@ export class Scrollable extends g.E {
 	private _beforeWidth: number;
 	private _beforeHeight: number;
 
+	/**
+	 * The content root entity.
+	 * Any children of this entity are clipped by the rectangle of `this` (defined by `this.width` and `this.height`).
+	 *
+	 * コンテンツルートとなるエンティティ。
+	 * コンテンツルートの子孫の表示はクリッピングされ、スクロールできるようになる。
+	 * そのクリッピング範囲は `this.width` と `this.height` で定義される。
+	 */
 	get content() { return this._contentContainer.content(); }
+
+	/**
+	 * The horizontal scrollbar.
+	 *
+	 * 横スクロールバーエンティティ。
+	 */
 	get horizontalBar() { return this._horizontalBar; }
+
+	/**
+	 * The vertical scrollbar.
+	 *
+	 * 縦スクロールバーエンティティ。
+	 */
 	get verticalBar() { return this._verticalBar; }
 
 	// TODO getter/setter in percent
 
+	/**
+	 * The horizontal scroll offset in pixels.
+	 * A positive number or zero.
+	 *
+	 * 横方向のスクロールオフセット(ピクセル)。
+	 * 0または正の数。
+	 */
 	get scrollOffsetX() { return -this._contentContainer.offsetContainer().x; }
+
+	/**
+	 * The vertical scroll offset in pixels.
+	 * A positive number or zero.
+	 *
+	 * 縦方向のスクロールオフセット(ピクセル)。
+	 * 0または正の数。
+	 */
 	get scrollOffsetY() { return -this._contentContainer.offsetContainer().y; }
 
+	/**
+	 * Assign the horizontal scroll offset in pixels.
+	 *
+	 * 横方向のスクロールオフセット(ピクセル)を設定する。
+	 * @param x The horizontal scroll offset in pixels. 横スクロールオフセット。
+	 */
 	set scrollOffsetX(x: number) {
 		this._apiRequestedOffsetX = -x;
 		this._requestUpdateContentScroll();
 		this._requestUpdateScrollbar();
 	}
 
+	/**
+	 * Assign the vertical scroll offset in pixels.
+	 *
+	 * 縦方向のスクロールオフセット(ピクセル)を設定する。
+	 * @param y The vertical scroll offset in pixels. 縦スクロールオフセット。
+	 */
 	set scrollOffsetY(y: number) {
 		this._apiRequestedOffsetY = -y;
 		this._requestUpdateContentScroll();
 		this._requestUpdateScrollbar();
 	}
 
+	/**
+	 * Create an instance of `Scrollable`.
+	 *
+	 * `Scrollable` のインスタンスを生成する。
+	 */
 	constructor(param: ScrollableParameterObject) {
 		super(param);
 		this._bgImage = null;
@@ -192,6 +247,7 @@ export class Scrollable extends g.E {
 		this._isVertical = !!param.vertical;
 		this._isHorizontal = !!param.horizontal;
 		this._touchScroll = !!param.touchScroll;
+		this._insetBars = !!param.insetBars;
 
 		this._extraDrawSize = 10;
 		this._extraDrawOffsetX = this._extraDrawSize;
@@ -206,20 +262,18 @@ export class Scrollable extends g.E {
 			this._barImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.5)", 4, "rgba(164, 164, 164, 0.7)");
 		}
 
-		const vbar =
+		this._verticalBar =
 			(param.vertical === true) ? new DefaultVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
 			(param.vertical) ? param.vertical :
 			new NullScrollbar({ scene: param.scene });
-		this._verticalBar = vbar;
-		this._verticalBar.x = param.insetBars ? this.width - this._verticalBar.width : this.width;
+		this._verticalBar.x = this._insetBars ? this.width - this._verticalBar.width : this.width;
 		this.append(this._verticalBar);
 		this._verticalBar.onChangeBarPositionRate.add(this._handleOnChangeVerticalPositionRate, this);
-		const hbar =
+		this._horizontalBar =
 			(param.horizontal === true) ? new DefaultHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
 			(param.horizontal) ? param.horizontal :
 			new NullScrollbar({ scene: param.scene });
-		this._horizontalBar = hbar;
-		this._horizontalBar.y = param.insetBars ? this.height - this._horizontalBar.height : this.height;
+		this._horizontalBar.y = this._insetBars ? this.height - this._horizontalBar.height : this.height;
 		this.append(this._horizontalBar);
 		this._horizontalBar.onChangeBarPositionRate.add(this._handleOnChangeHorizontalPositionRate, this);
 
@@ -253,8 +307,11 @@ export class Scrollable extends g.E {
 		this._requestUpdateScrollbar();
 	}
 
-	// scrollToX(100, 200, "ease-in");
-
+	/**
+	 * Destroy the entity.
+	 *
+	 * このエンティティを破棄する。
+	 */
 	destroy(): void {
 		this._contentContainer = null;  // destroy() called as destroying this.children.
 		this._horizontalBar = null;     // ditto.
@@ -268,9 +325,26 @@ export class Scrollable extends g.E {
 		this._renderedCamera = null;
 		this._renderOffsetX = 0;
 		this._renderOffsetY = 0;
+
+		if (this._bgImage) {
+			this._bgImage.destroy();
+			this._bgImage = null;
+		}
+		if (this._barImage) {
+			this._barImage.destroy();
+			this._barImage = null;
+		}
+
 		super.destroy();
 	}
 
+	/**
+	 * Render the entity.
+	 * Called by the engine implicitly. No need to call this directly.
+	 *
+	 * このエンティティを描画する。
+	 * このメソッドはエンジンによって暗黙に呼び出される。直接呼び出す必要はない。
+	 */
 	renderSelf(renderer: g.Renderer, camera?: g.Camera): boolean {
 		if (this._renderedCamera !== camera) {
 			this._isCached = false;
@@ -295,6 +369,11 @@ export class Scrollable extends g.E {
 		return false;
 	}
 
+	/**
+	 * Notify the modfication on this entity to the engine.
+	 *
+	 * このエンティティへの変更をエンジンに通知する。
+	 */
 	modified(isBubbling?: boolean): void {
 		if (isBubbling)
 			this._isCached = false;
@@ -324,6 +403,13 @@ export class Scrollable extends g.E {
 		super.modified(isBubbling);
 	}
 
+	/**
+	 * Check if the point may hit something.
+	 * Called by the engine implicitly. No need to call this directly.
+	 *
+	 * ある地点がヒットテストに反応しうるかどうかをチェックする。
+	 * このメソッドはエンジンによって暗黙に呼び出される。直接呼び出す必要はない。
+	 */
 	shouldFindChildrenByPoint(point: g.CommonOffset) {
 		const w = this.width + (this._insetBars ? 0 : this._verticalBar.width);
 		const h = this.height + (this._insetBars ? 0 : this._horizontalBar.height);
