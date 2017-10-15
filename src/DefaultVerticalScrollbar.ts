@@ -1,25 +1,4 @@
-
-export interface ScrollbarOperations {
-	onChangeBarPositionRate: g.Trigger<number>;
-	setBarProperties(posRate?: number | null, contentlength?: number | null, viewLength?: number | null): void;
-}
-
-export type ScrollbarLike = g.E & ScrollbarOperations;
-
-export class NullScrollbar extends g.E implements ScrollbarOperations {
-	onChangeBarPositionRate: g.Trigger<number>;
-	constructor(param: g.EParameterObject) {
-		super(param);
-		this.onChangeBarPositionRate = new g.Trigger<number>();
-	}
-	destroy(): void {
-		this.onChangeBarPositionRate.destroy();
-		this.onChangeBarPositionRate = null;
-	}
-	setBarProperties(posRate?: number | null, contentlength?: number | null, viewLength?: number | null): void {
-		// do nothing
-	}
-}
+import { ScrollbarOperations } from "./ScrollbarLike";
 
 export interface DefaultVerticalScrollbarParameterObject {
 	scene: g.Scene;

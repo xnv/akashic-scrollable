@@ -1,5 +1,7 @@
 import { createDefaultScrollbarImage } from "./createDefaultScrollbarImage";
-import { ScrollbarLike, NullScrollbar, DefaultVerticalScrollbar } from "./DefaultScrollbars";
+import { ScrollbarLike, ScrollbarOperations } from "./ScrollbarLike";
+import { NullScrollbar } from "./NullScrollbar";
+import { DefaultVerticalScrollbar } from "./DefaultVerticalScrollbar";
 
 export class ScrolledContent extends g.E {
 	onModified: g.Trigger<void>;
