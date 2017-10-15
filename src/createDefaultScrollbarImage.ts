@@ -1,9 +1,7 @@
 
 export function drawCircle(rendr: g.Renderer, centerX: number, centerY: number, radius: number, cssColor: string) {
 	for (let y = centerY - radius; y <= centerY + radius; ++y) {
-		const ry = (centerY - y);
-		const adj = (ry > 0) ? -0.5 : ((ry < 0) ? 0.5 : 0);  // adjust to make it more roundly (especially for top and bottom edges)
-		const w = radius * Math.cos(Math.asin((ry + adj) / radius));
+		const w = radius * Math.cos(Math.asin((centerY - y) / radius));
 		rendr.fillRect(centerX - w, y, 2 * w, 1, cssColor);
 	}
 }
