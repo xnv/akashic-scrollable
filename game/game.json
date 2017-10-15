@@ -1,0 +1,46 @@
+{
+	"width": 500,
+	"height": 500,
+	"fps": 30,
+	"main": "./script/main.js",
+	"assets": {
+		"main": {
+			"type": "script",
+			"path": "script/main.js",
+			"global": true
+		},
+		"Scrollable": {
+			"type": "script",
+			"path": "script/Scrollable.js",
+			"global": true
+		},
+		"createDefaultScrollbarImage": {
+			"type": "script",
+			"path": "script/createDefaultScrollbarImage.js",
+			"global": true
+		},
+		"DefaultVerticalScrollbar": {
+			"type": "script",
+			"path": "script/DefaultVerticalScrollbar.js",
+			"global": true
+		},
+		"NullScrollbar": {
+			"type": "script",
+			"path": "script/NullScrollbar.js",
+			"global": true
+		},
+		"ScrollbarLike": {
+			"type": "script",
+			"path": "script/ScrollbarLike.js",
+			"global": true
+		},
+		"DefaultHorizontalScrollbar": {
+			"type": "script",
+			"path": "script/DefaultHorizontalScrollbar.js",
+			"global": true
+		}
+	},
+	"environment": {
+		"sandbox-runtime": "2"
+	}
+}
