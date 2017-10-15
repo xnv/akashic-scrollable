@@ -58,7 +58,7 @@ export class DefaultHorizontalScrollbar extends g.Pane implements ScrollbarOpera
 			this.width = viewLength;
 			this.invalidate();
 		}
-		const barWidth = Math.floor(Math.max(this.width * this.width / this._contentLength, this._barImage.width));
+		const barWidth = (this.width < this._contentLength) ? Math.floor(Math.max(this.width * this.width / this._contentLength, this._barImage.width)) : 0;
 		const barPos = Math.floor(Math.max(posRate * this.width));
 		if (this._bar.width !== barWidth) {
 			this._bar.width = barWidth;

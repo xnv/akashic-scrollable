@@ -58,7 +58,7 @@ export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperati
 			this.height = viewLength;
 			this.invalidate();
 		}
-		const barHeight = Math.floor(Math.max(this.height * this.height / this._contentLength, this._barImage.height));
+		const barHeight = (this.height < this._contentLength) ? Math.floor(Math.max(this.height * this.height / this._contentLength, this._barImage.height)) : 0;
 		const barPos = Math.floor(Math.max(posRate * this.height));
 		if (this._bar.height !== barHeight) {
 			this._bar.height = barHeight;

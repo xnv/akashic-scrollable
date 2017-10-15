@@ -165,6 +165,8 @@ export class Scrollable extends g.E {
 	private _lastNotifiedHorizontalRate: number;
 	private _deltaX: number;
 	private _deltaY: number;
+	private _beforeWidth: number;
+	private _beforeHeight: number;
 
 	get content() { return this._contentContainer.content(); }
 	get horizontalBar() { return this._horizontalBar; }
@@ -233,6 +235,8 @@ export class Scrollable extends g.E {
 		this._lastNotifiedHorizontalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
+		this._beforeWidth = param.width;
+		this._beforeHeight = param.height;
 
 		this._contentContainer.onContentModified.add(this._handleContentModified, this);
 		if (this._touchScroll) {
@@ -286,8 +290,38 @@ export class Scrollable extends g.E {
 	}
 
 	modified(isBubbling?: boolean): void {
-		// TODO: check width/height and update scrollbars.
+		if (isBubbling)
+			this._isCached = false;
+
+		let sizeChanged = false;
+		if (this.width !== this._beforeWidth) {
+			sizeChanged = true;
+			this._beforeWidth = this.width;
+			if (this._verticalBar) {
+				this._verticalBar.x = this._insetBars ? this.width - this._verticalBar.width : this.width;
+				this._verticalBar.modified();
+			}
+		}
+		if (this.height !== this._beforeHeight) {
+			sizeChanged = true;
+			this._beforeHeight = this.height;
+			if (this._horizontalBar) {
+				this._horizontalBar.y = this._insetBars ? this.height - this._horizontalBar.height : this.height;
+				this._horizontalBar.modified();
+			}
+		}
+		if (sizeChanged) {
+			this._requestUpdateContentScroll();
+			this._requestUpdateScrollbar();
+		}
+
 		super.modified(isBubbling);
+	}
+
+	shouldFindChildrenByPoint(point: g.CommonOffset) {
+		const w = this.width + (this._insetBars ? 0 : this._verticalBar.width);
+		const h = this.height + (this._insetBars ? 0 : this._horizontalBar.height);
+		return (0 <= point.x && point.x < w) && (0 <= point.y && point.y < h);
 	}
 
 	private _handleContentModified(): void {
@@ -351,7 +385,7 @@ export class Scrollable extends g.E {
 			this._isUpdateBoundingRectRequested = false;
 			boundingRectChanged = this._updateBoundingRect();
 		}
-		if (this._isUpdateContentScrollRequested) {
+		if (boundingRectChanged || this._isUpdateContentScrollRequested) {
 			this._isUpdateContentScrollRequested = false;
 			this._updateContentScroll();
 		}
