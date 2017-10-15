@@ -3,11 +3,12 @@
     "target": "ES5",
     "noLib": false,
     "noImplicitAny": true,
+    "declaration": true,
     "module": "commonjs" ,
-    "outDir": "./game/script"
+    "outDir": "./lib"
   },
   "files": [
     "node_modules/@akashic/akashic-engine/lib/main.d.ts",
-    "src/main.ts"
+    "src/index.ts"
   ]
 }
