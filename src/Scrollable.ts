@@ -1,5 +1,5 @@
 import { createDefaultScrollbarImage } from "./createDefaultScrollbarImage";
-import { ScrollbarLike, ScrollbarOperations } from "./ScrollbarLike";
+import { ScrollbarLike } from "./ScrollbarLike";
 import { NullScrollbar } from "./NullScrollbar";
 import { DefaultVerticalScrollbar } from "./DefaultVerticalScrollbar";
 import { DefaultHorizontalScrollbar } from "./DefaultHorizontalScrollbar";
@@ -133,7 +133,6 @@ export class Scrollable extends g.E {
 	private _isHorizontal: boolean;
 	private _touchScroll: boolean;
 	private _insetBars: boolean;
-	private _barWidth: number;
 
 	private _extraDrawSize: number;
 	private _extraDrawOffsetX: number;
@@ -146,7 +145,7 @@ export class Scrollable extends g.E {
 	private _surface: g.Surface;
 	private _renderer: g.Renderer;
 	private _isCached: boolean;
-	private _renderedCamera: g.Camera
+	private _renderedCamera: g.Camera;
 
 	private _renderOffsetX: number;
 	private _renderOffsetY: number;
@@ -192,7 +191,7 @@ export class Scrollable extends g.E {
 		this._barImage = null;
 		this._isVertical = !!param.vertical;
 		this._isHorizontal = !!param.horizontal;
-		this._touchScroll = !!param.touchScroll
+		this._touchScroll = !!param.touchScroll;
 
 		this._extraDrawSize = 10;
 		this._extraDrawOffsetX = this._extraDrawSize;
@@ -207,17 +206,18 @@ export class Scrollable extends g.E {
 			this._barImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.5)", 4, "rgba(164, 164, 164, 0.7)");
 		}
 
-		const vbar = (param.vertical === true) ? new DefaultVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage })
-		                    : (param.vertical) ? param.vertical
-		                                       : new NullScrollbar({ scene: param.scene });
+		const vbar =
+			(param.vertical === true) ? new DefaultVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
+			(param.vertical) ? param.vertical :
+			new NullScrollbar({ scene: param.scene });
 		this._verticalBar = vbar;
 		this._verticalBar.x = param.insetBars ? this.width - this._verticalBar.width : this.width;
 		this.append(this._verticalBar);
 		this._verticalBar.onChangeBarPositionRate.add(this._handleOnChangeVerticalPositionRate, this);
-
-		const hbar = (param.horizontal === true) ? new DefaultHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage })
-		                    : (param.horizontal) ? param.horizontal
-		                                         : new NullScrollbar({ scene: param.scene });
+		const hbar =
+			(param.horizontal === true) ? new DefaultHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
+			(param.horizontal) ? param.horizontal :
+			new NullScrollbar({ scene: param.scene });
 		this._horizontalBar = hbar;
 		this._horizontalBar.y = param.insetBars ? this.height - this._horizontalBar.height : this.height;
 		this.append(this._horizontalBar);
@@ -468,7 +468,7 @@ export class Scrollable extends g.E {
 
 	private _renderCache(camera?: g.Camera): void {
 		const surfaceWidth = Math.ceil(this.width + 2 * this._extraDrawSize);
-		const surfaceHeight = Math.ceil(this.height + 2 * this._extraDrawSize); 
+		const surfaceHeight = Math.ceil(this.height + 2 * this._extraDrawSize);
 		const isNew = !this._surface || this._surface.width < surfaceWidth || this._surface.height < surfaceHeight;
 		if (isNew) {
 			if (this._surface && !this._surface.destroyed())

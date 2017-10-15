@@ -47,7 +47,7 @@ function main(param: g.GameMainParameterObject): void {
 			blue.cssColor = "silver";
 			blue.modified();
 		});
-		blue.pointMove.add(function (e) {
+		blue.pointMove.add(function (e: g.PointMoveEvent) {
 			blue.x += e.prevDelta.x;
 			blue.y += e.prevDelta.y;
 			blue.modified();

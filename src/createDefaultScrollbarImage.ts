@@ -6,9 +6,11 @@ export function drawCircle(rendr: g.Renderer, centerX: number, centerY: number, 
 	}
 }
 
-export function createDefaultScrollbarImage(game: g.Game,
-                                            outerRadius: number, outerCssColor: string,
-                                            innerRadius?: number, innerCssColor?: string): g.Surface {
+export function createDefaultScrollbarImage(
+	game: g.Game,
+	outerRadius: number, outerCssColor: string,
+	innerRadius?: number, innerCssColor?: string
+): g.Surface {
 	const s = game.resourceFactory.createSurface(outerRadius * 2 + 1, outerRadius * 2 + 1);
 	const r = s.renderer();
 	r.begin();
