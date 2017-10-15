@@ -13,6 +13,16 @@
 			"type": "script",
 			"path": "script/Scrollable.js",
 			"global": true
+		},
+		"DefaultScrollbars": {
+			"type": "script",
+			"path": "script/DefaultScrollbars.js",
+			"global": true
+		},
+		"createDefaultScrollbarImage": {
+			"type": "script",
+			"path": "script/createDefaultScrollbarImage.js",
+			"global": true
 		}
 	},
 	"environment": {

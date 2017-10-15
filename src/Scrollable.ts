@@ -1,3 +1,5 @@
+import { createDefaultScrollbarImage } from "./createDefaultScrollbarImage";
+import { ScrollbarLike, NullScrollbar, DefaultVerticalScrollbar } from "./DefaultScrollbars";
 
 export class ScrolledContent extends g.E {
 	onModified: g.Trigger<void>;
@@ -50,7 +52,7 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	 * 縦方向のスクロールを有効にするか。
 	 * 省略された場合、偽。
 	 */
-	vertical?: boolean;
+	vertical?: boolean | ScrollbarLike;
 
 	/**
 	 * Enable/disable horizontal scrolling.
@@ -59,7 +61,7 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	 * 縦方向のスクロールを有効にするか。
 	 * 省略された場合、偽。
 	 */
-	horizontal?: boolean;
+	horizontal?: boolean; // | ScrollbarLike;
 
 	/**
 	 * Enable/disable scrolling by dragging on the entity itself.
@@ -96,22 +98,30 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	 * The image of the scrollbar.
 	 *
 	 */
-	barImage?: g.Asset | g.Surface | "default";
+	barImage?: g.Asset | g.Surface | string;
 
 	// inertialScroll?: boolean;  // | InertialScrollPolicy
-	// fuzzyDirectionLock?: boolean;  // should be considered as a future extension?
+	// fuzzyDirectionLock?: boolean;  // as a future extension?
 }
 
 export class Scrollable extends g.E {
-	private _vertical: boolean;
-	private _horizontal: boolean;
+	// TODO should share? but how? multiple game instances should be considered.
+	private _scrollbarBgImage: g.Surface;
+	private _scrollbarImage: g.Surface;
+
+	private _isVertical: boolean;
+	private _isHorizontal: boolean;
 	private _touchScroll: boolean;
+	private _insetBars: boolean;
+	private _barWidth: number;
+
 	private _extraDrawSize: number;
 	private _extraDrawOffsetX: number;
 	private _extraDrawOffsetY: number;
+
 	private _contentContainer: ScrolledContentContainer;
-	private _horizontalBar: g.E;
-	private _verticalBar: g.E;
+	private _horizontalBar: ScrollbarLike;
+	private _verticalBar: ScrollbarLike;
 
 	private _surface: g.Surface;
 	private _renderer: g.Renderer;
@@ -122,21 +132,17 @@ export class Scrollable extends g.E {
 	private _renderOffsetY: number;
 	private _contentBoundingWidth: number;
 	private _contentBoundingHeight: number;
-	private _isUpdateScrollBarRequested: boolean;
+	private _isUpdateBoundingRectRequested: boolean;
+	private _isUpdateContentScrollRequested: boolean;
+	private _isUpdateScrollbarRequested: boolean;
+	private _isFlushRequested: boolean;
+	private _lastNotifiedVerticalRate: number;
 	private _deltaX: number;
 	private _deltaY: number;
 
-	get content() {
-		return this._contentContainer.content();
-	}
-
-	get horizontalBar() {
-		return this._horizontalBar;
-	}
-
-	get verticalBar() {
-		return this._horizontalBar;
-	}
+	get content() { return this._contentContainer.content(); }
+	get horizontalBar() { return this._horizontalBar; }
+	get verticalBar() { return this._verticalBar; }
 
 	// TODO getter/setter in percent
 
@@ -150,16 +156,39 @@ export class Scrollable extends g.E {
 
 	constructor(param: ScrollableParameterObject) {
 		super(param);
-		this._vertical = !!param.vertical;
-		this._horizontal = !!param.horizontal;
+		this._scrollbarBgImage = null;
+		this._scrollbarImage = null;
+		this._isVertical = !!param.vertical;
+		this._isHorizontal = !!param.horizontal;
 		this._touchScroll = !!param.touchScroll
 
 		this._extraDrawSize = 10;
 		this._extraDrawOffsetX = this._extraDrawSize;
 		this._extraDrawOffsetY = this._extraDrawSize;
+
 		this._contentContainer = new ScrolledContentContainer({ scene: param.scene, parent: this });
-		this._horizontalBar = new g.E({ scene: param.scene, parent: this });
-		this._verticalBar = new g.E({ scene: param.scene, parent: this });
+		this._horizontalBar = new NullScrollbar({ scene: param.scene, parent: this });
+		this._verticalBar = null;
+
+		if (param.vertical) {
+			if (typeof param.vertical === "object") {
+				this._verticalBar = param.vertical;
+			} else {
+				this._scrollbarBgImage = createDefaultScrollbarImage(param.scene.game, 10, "rgba(255, 255, 255, 0.2)", 7, "rgba(218, 218, 218, 0.5)");
+				this._scrollbarImage = createDefaultScrollbarImage(param.scene.game, 10, "rgba(255, 255, 255, 0.7)", 7, "rgba(128, 129, 128, 0.7)");
+				this._verticalBar = new DefaultVerticalScrollbar({
+					scene: param.scene,
+					bgImage: this._scrollbarBgImage,
+					image: this._scrollbarImage
+				});
+			}
+		} else {
+			this._verticalBar = new NullScrollbar({ scene: param.scene });
+		}
+		this._verticalBar.x = param.insetBars ? this.width - this._verticalBar.width : this.width;
+		this.append(this._verticalBar);
+		this._verticalBar.onChangeBarPositionRate.add(this._handleOnChangeVerticalPositionRate, this);
+
 		this._surface = null;
 		this._renderer = null;
 		this._isCached = false;
@@ -168,7 +197,11 @@ export class Scrollable extends g.E {
 		this._renderOffsetY = 0;
 		this._contentBoundingWidth = 0;
 		this._contentBoundingHeight = 0;
-		this._isUpdateScrollBarRequested = false;
+		this._isUpdateBoundingRectRequested = false;
+		this._isUpdateContentScrollRequested = false;
+		this._isUpdateScrollbarRequested = false;
+		this._isFlushRequested = false;
+		this._lastNotifiedVerticalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
 
@@ -178,6 +211,9 @@ export class Scrollable extends g.E {
 			this.touchable = true;
 			this.pointMove.add(this._handlePointMove, this);
 		}
+
+		this._requestUpdateBoundingRect();
+		this._requestUpdateScrollbar();
 	}
 
 	// scrollToX(100, 200, "ease-in");
@@ -222,58 +258,118 @@ export class Scrollable extends g.E {
 		return false;
 	}
 
-	private _requestUdpateScrollBar(): void {
-		if (this._isUpdateScrollBarRequested) return;
-		this._isUpdateScrollBarRequested = true;
+	modified(isBubbling?: boolean): void {
+		// TODO: check width/height and update scrollbars.
+		super.modified(isBubbling);
+	}
+
+	private _handleContentModified(): void {
+		this._requestUpdateBoundingRect();
+	}
+
+	private _handleOnChangeVerticalPositionRate(rate: number): void {
+		this._lastNotifiedVerticalRate = rate;
+		this._requestUpdateContentScroll();
+	}
+
+	private _handlePointMove(ev: g.PointMoveEvent): void {
+		this._deltaX += ev.prevDelta.x;
+		this._deltaY += ev.prevDelta.y;
+		this._requestUpdateScrollbar();
+		this._requestUpdateContentScroll();
+		this.modified();
+	}
+
+	private _requestUpdateBoundingRect(): void {
+		if (this._isUpdateBoundingRectRequested) return;
+		this._isUpdateBoundingRectRequested = true;
+		this._requestFlushModification();
+	}
+
+	private _requestUpdateScrollbar(): void {
+		if (this._isUpdateScrollbarRequested) return;
+		this._isUpdateScrollbarRequested = true;
+		this._requestFlushModification();
+	}
+
+	private _requestUpdateContentScroll(): void {
+		if (this._isUpdateContentScrollRequested) return;
+		this._isUpdateContentScrollRequested = true;
+		this._requestFlushModification();
+	}
+
+	private _requestFlushModification(): void {
+		if (this._isFlushRequested) return;
+		this._isFlushRequested = true;
 
 		// Ugh! A dirty hack to update the bounding rect only once a frame, after all events consumed.
 		// We should not depend on the rendering phase (which is also performed once a frame) because it may be skipped.
 		this.scene.game._callSceneAssetHolderHandler({
 			callHandler: () => {
 				if (this.destroyed()) return;  // may be destroyed... (since the scene may be dropped here...)
-				this._isUpdateScrollBarRequested = false;
-
-				// Ugh! This class ignores cameras.
-				// The dimensions of the scrollable area are determined by the bounding rect which depends on cameras.
-				// This means the same operation on scrollable ares may be interpreted in multiple ways...
-				// Calling `calculateBoundingRect()` here, outside of the rendering phase, is valid as we ignore cameras.
-				const content = this._contentContainer.content();
-				const br = content.calculateBoundingRect();
-				this._contentBoundingWidth = br.right - br.left;
-				this._contentBoundingHeight = br.bottom - br.top;
-
-				this._flushScrollDelta();
-				this._updateScrollBar();
+				this._flushModification();
 			}
 		} as any);
 	}
 
-	private _handleContentModified(): void {
-		this._requestUdpateScrollBar();
+	private _flushModification(): void {
+		this._isFlushRequested = false;
+		let boundingRectChanged = false;
+		if (this._isUpdateBoundingRectRequested) {
+			this._isUpdateBoundingRectRequested = false;
+			boundingRectChanged = this._updateBoundingRect();
+		}
+		if (this._isUpdateContentScrollRequested) {
+			this._isUpdateContentScrollRequested = false;
+			this._updateContentScroll();
+		}
+		if (boundingRectChanged || this._isUpdateScrollbarRequested) {
+			this._isUpdateScrollbarRequested = false;
+			this._updateScrollBar();
+		}
 	}
 
-	private _handlePointMove(ev: g.PointMoveEvent): void {
-		this._deltaX += ev.prevDelta.x;
-		this._deltaY += ev.prevDelta.y;
-		this._requestUdpateScrollBar();
-		this.modified();
+	private _updateBoundingRect(): boolean {
+		// Ugh! This class ignores cameras.
+		// The dimensions of the scrollable area are determined by the bounding rect which depends on cameras.
+		// This means the same operation on scrollable ares may be interpreted in multiple ways...
+		// Calling `calculateBoundingRect()` here, outside of the rendering phase, is valid as we ignore cameras.
+		const content = this._contentContainer.content();
+		const br = content.calculateBoundingRect();
+		const bw = br.right - br.left;
+		const bh = br.bottom - br.top;
+		let boundingRectChanged = false;
+		if (this._contentBoundingWidth !== bw) {
+			this._contentBoundingWidth = bw;
+			boundingRectChanged = true;
+		}
+		if (this._contentBoundingHeight !== bh) {
+			this._contentBoundingHeight = bh;
+			boundingRectChanged = true;
+		}
+		return boundingRectChanged;
 	}
 
-	private _flushScrollDelta(): void {
+	private _updateContentScroll(): void {
 		const offsetContainer = this._contentContainer.offsetContainer();
+		const vrate = this._lastNotifiedVerticalRate;
 		const dx = this._deltaX;
 		const dy = this._deltaY;
+		this._lastNotifiedVerticalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
-		if (this._horizontal) {
+
+		if (this._isHorizontal) {
 			const x0 = offsetContainer.x;
 			offsetContainer.x = Math.max(Math.min(x0 + dx, 0), Math.min(this.width - this._contentBoundingWidth, 0));
 			this._renderOffsetX += (offsetContainer.x - x0);
 		}
-		if (this._vertical) {
+		if (this._isVertical) {
 			const y0 = offsetContainer.y;
-			offsetContainer.y = Math.max(Math.min(y0 + dy, 0), Math.min(this.height - this._contentBoundingHeight, 0));
-			this._renderOffsetY += (offsetContainer.y - y0);
+			const y1raw = (dy !== 0) ? (y0 + dy) : ((vrate != null) ? (vrate * this.height) : y0);
+			const y1 = Math.max(Math.min(y1raw, 0), Math.min(this.height - this._contentBoundingHeight, 0));
+			offsetContainer.y = y1;
+			this._renderOffsetY += y1 - y0;
 		}
 		if (Math.abs(this._renderOffsetX) > this._extraDrawSize ||
 				Math.abs(this._renderOffsetY) > this._extraDrawSize) {
@@ -284,30 +380,8 @@ export class Scrollable extends g.E {
 	private _updateScrollBar(): void {
 		// Is calling modified() in the flushSceneChangeRequests phase valid...?
 		const offsetContainer = this._contentContainer.offsetContainer();
-		const x = offsetContainer.x;
-		const y = offsetContainer.y;
-		const outerWidth = this.width;
-		const outerHeight = this.height;
-		const bx = Math.round(outerWidth * x / this._contentBoundingWidth);
-		const by = Math.round(outerHeight * y / this._contentBoundingHeight);
-		const bw = Math.round(outerWidth * outerWidth / this._contentBoundingWidth);
-		const bh = Math.round(outerHeight * outerHeight / this._contentBoundingWidth);
-		if (this._horizontalBar.x !== bx) {
-			this._horizontalBar.x = bx;
-			this._horizontalBar.modified();
-		}
-		if (this._horizontalBar.width !== bw) {
-			this._horizontalBar.width = bw;
-			this._horizontalBar.modified();
-		}
-		if (this._verticalBar.y !== by) {
-			this._verticalBar.y = by;
-			this._verticalBar.modified();
-		}
-		if (this._verticalBar.height !== bh) {
-			this._verticalBar.height = bh;
-			this._verticalBar.modified();
-		}
+		this._horizontalBar.setBarProperties(-offsetContainer.x / this._contentBoundingWidth, this._contentBoundingWidth, this.width);
+		this._verticalBar.setBarProperties(-offsetContainer.y / this._contentBoundingHeight, this._contentBoundingHeight, this.height);
 	}
 
 	private _renderCache(camera?: g.Camera): void {
