@@ -33,6 +33,11 @@
 			"type": "script",
 			"path": "script/ScrollbarLike.js",
 			"global": true
+		},
+		"DefaultHorizontalScrollbar": {
+			"type": "script",
+			"path": "script/DefaultHorizontalScrollbar.js",
+			"global": true
 		}
 	},
 	"environment": {

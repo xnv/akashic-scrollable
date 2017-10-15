@@ -2,6 +2,7 @@ import { createDefaultScrollbarImage } from "./createDefaultScrollbarImage";
 import { ScrollbarLike, ScrollbarOperations } from "./ScrollbarLike";
 import { NullScrollbar } from "./NullScrollbar";
 import { DefaultVerticalScrollbar } from "./DefaultVerticalScrollbar";
+import { DefaultHorizontalScrollbar } from "./DefaultHorizontalScrollbar";
 
 export class ScrolledContent extends g.E {
 	onModified: g.Trigger<void>;
@@ -108,8 +109,8 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 
 export class Scrollable extends g.E {
 	// TODO should share? but how? multiple game instances should be considered.
-	private _scrollbarBgImage: g.Surface;
-	private _scrollbarImage: g.Surface;
+	private _bgImage: g.Surface;
+	private _barImage: g.Surface;
 
 	private _isVertical: boolean;
 	private _isHorizontal: boolean;
@@ -139,6 +140,7 @@ export class Scrollable extends g.E {
 	private _isUpdateScrollbarRequested: boolean;
 	private _isFlushRequested: boolean;
 	private _lastNotifiedVerticalRate: number;
+	private _lastNotifiedHorizontalRate: number;
 	private _deltaX: number;
 	private _deltaY: number;
 
@@ -158,8 +160,8 @@ export class Scrollable extends g.E {
 
 	constructor(param: ScrollableParameterObject) {
 		super(param);
-		this._scrollbarBgImage = null;
-		this._scrollbarImage = null;
+		this._bgImage = null;
+		this._barImage = null;
 		this._isVertical = !!param.vertical;
 		this._isHorizontal = !!param.horizontal;
 		this._touchScroll = !!param.touchScroll
@@ -172,24 +174,26 @@ export class Scrollable extends g.E {
 		this._horizontalBar = new NullScrollbar({ scene: param.scene, parent: this });
 		this._verticalBar = null;
 
-		if (param.vertical) {
-			if (typeof param.vertical === "object") {
-				this._verticalBar = param.vertical;
-			} else {
-				this._scrollbarBgImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.2)", 4, "rgba(218, 218, 218, 0.5)");
-				this._scrollbarImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.5)", 4, "rgba(164, 164, 164, 0.7)");
-				this._verticalBar = new DefaultVerticalScrollbar({
-					scene: param.scene,
-					bgImage: this._scrollbarBgImage,
-					image: this._scrollbarImage
-				});
-			}
-		} else {
-			this._verticalBar = new NullScrollbar({ scene: param.scene });
+		if (param.vertical === true || param.horizontal === true) {
+			this._bgImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.2)", 4, "rgba(218, 218, 218, 0.5)");
+			this._barImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.5)", 4, "rgba(164, 164, 164, 0.7)");
 		}
+
+		const vbar = (param.vertical === true) ? new DefaultVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage })
+		                    : (param.vertical) ? param.vertical
+		                                       : new NullScrollbar({ scene: param.scene });
+		this._verticalBar = vbar;
 		this._verticalBar.x = param.insetBars ? this.width - this._verticalBar.width : this.width;
 		this.append(this._verticalBar);
 		this._verticalBar.onChangeBarPositionRate.add(this._handleOnChangeVerticalPositionRate, this);
+
+		const hbar = (param.horizontal === true) ? new DefaultHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage })
+		                    : (param.horizontal) ? param.horizontal
+		                                         : new NullScrollbar({ scene: param.scene });
+		this._horizontalBar = hbar;
+		this._horizontalBar.y = param.insetBars ? this.height - this._horizontalBar.height : this.height;
+		this.append(this._horizontalBar);
+		this._horizontalBar.onChangeBarPositionRate.add(this._handleOnChangeHorizontalPositionRate, this);
 
 		this._surface = null;
 		this._renderer = null;
@@ -204,16 +208,15 @@ export class Scrollable extends g.E {
 		this._isUpdateScrollbarRequested = false;
 		this._isFlushRequested = false;
 		this._lastNotifiedVerticalRate = null;
+		this._lastNotifiedHorizontalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
 
 		this._contentContainer.onContentModified.add(this._handleContentModified, this);
-
 		if (this._touchScroll) {
 			this.touchable = true;
 			this.pointMove.add(this._handlePointMove, this);
 		}
-
 		this._requestUpdateBoundingRect();
 		this._requestUpdateScrollbar();
 	}
@@ -271,6 +274,11 @@ export class Scrollable extends g.E {
 
 	private _handleOnChangeVerticalPositionRate(rate: number): void {
 		this._lastNotifiedVerticalRate = rate;
+		this._requestUpdateContentScroll();
+	}
+
+	private _handleOnChangeHorizontalPositionRate(rate: number): void {
+		this._lastNotifiedHorizontalRate = rate;
 		this._requestUpdateContentScroll();
 	}
 
@@ -355,15 +363,19 @@ export class Scrollable extends g.E {
 	private _updateContentScroll(): void {
 		const offsetContainer = this._contentContainer.offsetContainer();
 		const vrate = this._lastNotifiedVerticalRate;
+		const hrate = this._lastNotifiedHorizontalRate;
 		const dx = this._deltaX;
 		const dy = this._deltaY;
 		this._lastNotifiedVerticalRate = null;
+		this._lastNotifiedHorizontalRate = null;
 		this._deltaX = 0;
 		this._deltaY = 0;
 
 		if (this._isHorizontal) {
 			const x0 = offsetContainer.x;
-			offsetContainer.x = Math.max(Math.min(x0 + dx, 0), Math.min(this.width - this._contentBoundingWidth, 0));
+			const x1raw = (dx !== 0) ? (x0 + dx) : ((hrate != null) ? (-hrate * this._contentBoundingWidth) : x0);
+			const x1 = Math.max(Math.min(x1raw, 0), Math.min(this.width - this._contentBoundingWidth, 0));
+			offsetContainer.x = x1;
 			this._renderOffsetX += (offsetContainer.x - x0);
 		}
 		if (this._isVertical) {

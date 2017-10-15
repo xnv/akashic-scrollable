@@ -6,6 +6,7 @@ function main(param: g.GameMainParameterObject): void {
 		const scr = new Scrollable({
 			scene: scene,
 			vertical: true,
+			horizontal: true,
 			touchScroll: true,
 			width: 100,
 			height: 100,
@@ -40,7 +41,15 @@ function main(param: g.GameMainParameterObject): void {
 			width: 32,
 			height: 32
 		});
-
+		new g.FilledRect({
+			scene: scene,
+			parent: scr.content,
+			cssColor: "#00ff00",
+			x: 150,
+			y: 280,
+			width: 32,
+			height: 32
+		});
 
 		scene.append(scr);
 	});
