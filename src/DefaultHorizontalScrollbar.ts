@@ -1,11 +1,24 @@
 import { ScrollbarOperations } from "./ScrollbarLike";
 
+/**
+ * The type of the argument of `new DefaultHorizontalScrollbar()`.
+ *
+ * `new DefaultHorizontalScrollbar()` の引数の型。
+ */
 export interface DefaultHorizontalScrollbarParameterObject {
 	scene: g.Scene;
 	bgImage?: g.Surface;
 	image: g.Surface;
 }
 
+
+/**
+ * The default horizontal scrollbar entity.
+ * Takes two images (as background and bar itself), use them in nine-patched style.
+ *
+ * デフォルトの横スクロールバー。
+ * 二つの画像(背景用・バー用)をとり、9パッチで拡大して利用する。
+ */
 export class DefaultHorizontalScrollbar extends g.Pane implements ScrollbarOperations {
 	onChangeBarPositionRate: g.Trigger<number>;
 	private _bar: g.Pane;
