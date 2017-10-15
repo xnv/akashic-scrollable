@@ -366,7 +366,7 @@ export class Scrollable extends g.E {
 		}
 		if (this._isVertical) {
 			const y0 = offsetContainer.y;
-			const y1raw = (dy !== 0) ? (y0 + dy) : ((vrate != null) ? (vrate * this.height) : y0);
+			const y1raw = (dy !== 0) ? (y0 + dy) : ((vrate != null) ? (-vrate * this._contentBoundingHeight) : y0);
 			const y1 = Math.max(Math.min(y1raw, 0), Math.min(this.height - this._contentBoundingHeight, 0));
 			offsetContainer.y = y1;
 			this._renderOffsetY += y1 - y0;

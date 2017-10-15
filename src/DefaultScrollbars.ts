@@ -32,6 +32,7 @@ export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperati
 	private _bar: g.Pane;
 	private _barImage: g.Surface;
 	private _contentLength: number;
+	private _deltaOrigin: number;
 	private _delta: number;
 
 	constructor(param: DefaultVerticalScrollbarParameterObject) {
@@ -54,6 +55,7 @@ export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperati
 		});
 		this._barImage = param.image;
 		this._contentLength = 0;
+		this._deltaOrigin = 0;
 		this._delta = 0;
 
 		this._bar.pointDown.add(this._handleBarPointDown, this);
@@ -86,17 +88,22 @@ export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperati
 		if (this._bar.y !== barPos) {
 			this._bar.y = barPos;
 			this._bar.modified();
+
+			// reset to be safe... unnecessary?
+			this._deltaOrigin = this._bar.y;
+			this._delta = 0;
 		}
 	}
 
 	private _handleBarPointDown(ev: g.PointDownEvent): void {
+		this._deltaOrigin = this._bar.y;
 		this._delta = 0;
 	}
 
 	private _handleBarPointMove(ev: g.PointMoveEvent): void {
 		this._delta += ev.prevDelta.y;
 		const limit = this.height - this._bar.height;
-		const next = Math.min(Math.max(this._bar.y + this._delta, 0), limit);
+		const next = Math.min(Math.max(this._deltaOrigin + this._delta, 0), limit);
 		if (this._bar.y === next)
 			return;
 		this._bar.y = next;
