@@ -49,22 +49,44 @@ export class ScrolledContentContainer extends g.E {
 
 export interface ScrollableParameterObject extends g.EParameterObject {
 	/**
+	 * The width of this entity and the width of the scrolled area.
+	 * Unless `insetBars`, the scrollbars are shown outside of the width.
+	 *
+	 * このエンティティの幅・スクロール領域の幅。
+	 * `insetBars` が真でなければ、スクロールバーはこの幅の外側に表示される。
+	 */
+	width: number;
+
+	/**
+	 * The height of this entity and the height of the scrolled area.
+	 * Unless `insetBars`, the scrollbars are shown outside of the height.
+	 *
+	 * このエンティティの高さ・スクロール領域の高さ。
+	 * `insetBars` が真でなければ、スクロールバーはこの高さの外側に表示される。
+	 */
+	height: number;
+
+	/**
 	 * Enable/disable vertical scrolling.
+	 * If a `ScrollbarLike` is given, it is used as the vertical scrollbar instead of the default one.
 	 * If not specified, `false`.
 	 *
 	 * 縦方向のスクロールを有効にするか。
+	 * `ScrollbarLike` が指定された場合、有効になり、値はデフォルトの縦スクロールバーの代わりに利用される。
 	 * 省略された場合、偽。
 	 */
 	vertical?: boolean | ScrollbarLike;
 
 	/**
 	 * Enable/disable horizontal scrolling.
+	 * If a `ScrollbarLike` is given, it is used as the horizontal scrollbar instead of the default one.
 	 * If not specified, `false` .
 	 *
 	 * 縦方向のスクロールを有効にするか。
+	 * `ScrollbarLike` が指定された場合、有効になり、値はデフォルトの横スクロールバーの代わりに利用される。
 	 * 省略された場合、偽。
 	 */
-	horizontal?: boolean; // | ScrollbarLike;
+	horizontal?: boolean | ScrollbarLike;
 
 	/**
 	 * Enable/disable scrolling by dragging on the entity itself.
@@ -312,7 +334,7 @@ export class Scrollable extends g.E {
 		if (this._isFlushRequested) return;
 		this._isFlushRequested = true;
 
-		// Ugh! A dirty hack to update the bounding rect only once a frame, after all events consumed.
+		// Ugh! A dirty hack to flush all changes only once a frame, after all events consumed.
 		// We should not depend on the rendering phase (which is also performed once a frame) because it may be skipped.
 		this.scene.game._callSceneAssetHolderHandler({
 			callHandler: () => {
