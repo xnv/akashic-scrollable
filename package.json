@@ -8,6 +8,7 @@
     "prepublish": "npm run build",
     "clean": "rimraf lib",
     "build": "tsc -p ./",
+    "doc": "typedoc --hideGenerator --mode file --out doc/ --tsconfig ./tsconfig.json",
     "lint": "tslint -c tslint.json src/**/*.ts",
     "test": "npm run lint"
   },
@@ -29,6 +30,7 @@
     "jasmine-terminal-reporter": "~0.9.1",
     "rimraf": "~2.6.2",
     "tslint": "^3.10.2",
+    "typedoc": "^0.8.0",
     "typescript": "2.1.6"
   }
 }
