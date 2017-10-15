@@ -174,8 +174,8 @@ export class Scrollable extends g.E {
 			if (typeof param.vertical === "object") {
 				this._verticalBar = param.vertical;
 			} else {
-				this._scrollbarBgImage = createDefaultScrollbarImage(param.scene.game, 10, "rgba(255, 255, 255, 0.2)", 7, "rgba(218, 218, 218, 0.5)");
-				this._scrollbarImage = createDefaultScrollbarImage(param.scene.game, 10, "rgba(255, 255, 255, 0.7)", 7, "rgba(128, 129, 128, 0.7)");
+				this._scrollbarBgImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.2)", 4, "rgba(218, 218, 218, 0.5)");
+				this._scrollbarImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.5)", 4, "rgba(164, 164, 164, 0.7)");
 				this._verticalBar = new DefaultVerticalScrollbar({
 					scene: param.scene,
 					bgImage: this._scrollbarBgImage,
@@ -338,16 +338,16 @@ export class Scrollable extends g.E {
 		const br = content.calculateBoundingRect();
 		const bw = br.right - br.left;
 		const bh = br.bottom - br.top;
-		let boundingRectChanged = false;
+		let changed = false;
 		if (this._contentBoundingWidth !== bw) {
 			this._contentBoundingWidth = bw;
-			boundingRectChanged = true;
+			changed = true;
 		}
 		if (this._contentBoundingHeight !== bh) {
 			this._contentBoundingHeight = bh;
-			boundingRectChanged = true;
+			changed = true;
 		}
-		return boundingRectChanged;
+		return changed;
 	}
 
 	private _updateContentScroll(): void {
