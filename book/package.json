@@ -1,0 +1,15 @@
+{
+  "name": "@xnv/akahsic-scroll-book",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Package to build gitbook for @xnv/akashic-scroll. Never be published.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "xnv",
+  "license": "MIT",
+  "devDependencies": {
+    "gitbook-cli": "~2.3.2"
+  }
+}
