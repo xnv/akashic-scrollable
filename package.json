@@ -6,7 +6,7 @@
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "npm run build",
-    "clean": "rimraf lib",
+    "clean": "rimraf lib && rimraf doc/",
     "build": "tsc -p ./",
     "doc": "typedoc --hideGenerator --mode file --out doc/ --tsconfig ./tsconfig.json",
     "lint": "tslint -c tslint.json src/**/*.ts",
