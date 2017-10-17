@@ -1,3 +1,5 @@
 node_modules/
-doc/
+book/_book/
+docs/
 lib/
+npm-debug.log

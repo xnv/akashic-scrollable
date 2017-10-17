@@ -106,7 +106,7 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	 * Inset the scollbars or not.
 	 * If `true`, the scrollbars are shown inside the entity's rectangle defined by `this.width` and `this.height`.
 	 * Note when this value is `false`, this entity renders outside of the rectangle.
-	 * If not specified, `true`.
+	 * If not specified, `false`.
 	 *
 	 * スクロールバーをエンティティ矩形の内側に描くか否か。
 	 * 真である場合、スクロールバーはエンティティ矩形(`this.width` と `this.height` の矩形)の内側に描かれる。
