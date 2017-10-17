@@ -43,7 +43,8 @@ The scrollbar should be disabled because no content entity is added and then no 
 
 ### Adding Contents
 
-You can add any entity as a content by appending to `Scrollable#content: g.E`, the content root.
+You can add any entity as a content by appending to `Scrollable#content`, the content root.
+`content` is an entity (`g.E`).
 The descendants of `scrollable.content` is called the content entities (of `scrollable`)
 and clipped by the `scrollable`'s rectangle (i.e. 100x100).
 
@@ -69,7 +70,4 @@ Any kind of entities can be added.
 
 Since `Scrollable#content` is just an entity (i.e. `g.E`), you can do any operation
 as `g.E`. But its not recommended to modify `content` itself except adding/removing children.
-
-## Scroll Offsets
-
 

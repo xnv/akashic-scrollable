@@ -1,8 +1,8 @@
 # akashic-scrollable
 
-> Japanese documentaion will be written later.
+> 日本語の文書は [こちら][guide-ja] 。
 
-**akashic-scrollable** is a library that provides scrolling/clipping entities for [Akashic Engine][ae].
+**akashic-scrollable** is a library for [Akashic Engine][ae] that provides scrolling/clipping entites.
 
 > Unfortunately, Akashic Engine does not provide English documentation yet.
 > Whole this library is documented in English just to be prepared for their future translation.
@@ -11,14 +11,14 @@
 ## Feature
 
 - Simple API
-  - Just `appendChild()` to `Scrollable#content` then it will be scrollable.
+  - Just `append()` entities to `Scrollable#content` then it will be scrollable.
 - Highly customizable scrollbar.
 
 ## Documents
 
 will be written later.
 
-- [Guide][guide]
+- [Guide][guide] or [利用ガイド (ja)][guide-ja]
 - [Demo][demo]
 - [API Reference][apiref]
 
