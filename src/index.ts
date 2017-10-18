@@ -1,6 +1,6 @@
-export * from "./ScrollbarLike";
-export * from "./DefaultHorizontalScrollbar";
-export * from "./DefaultVerticalScrollbar";
+export * from "./Scrollbar";
+export * from "./NinePatchHorizontalScrollbar";
+export * from "./NinePatchVerticalScrollbar";
 export * from "./NullScrollbar";
 export * from "./createDefaultScrollbarImage";
 import { Scrollable, ScrollableParameterObject, ScrolledContentContainer, ScrolledContent } from "./Scrollable";

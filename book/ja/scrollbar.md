@@ -1,10 +1,10 @@
 # カスタムスクロールバー
 
 [前節][opts] で述べた通り、スクロールバーのデザインは任意にカスタマイズできます。
-`Scrollable` のコンストラクタ引数の `vertical`, `horizontal` プロパティに `ScrollbarLike` のインスタンスを与えると、
+`Scrollable` のコンストラクタ引数の `vertical`, `horizontal` プロパティに `Scrollbar` のインスタンスを与えると、
 デフォルトのスクロールバーに代えてそのインスタンスが利用されます。
 
-たとえば `myScrollbar: ScrollbarLike` がある時、次のように利用することができます:
+たとえば `myScrollbar: Scrollbar` がある時、次のように利用することができます:
 
 ```
 const scrollable = new Scrollable({
@@ -17,9 +17,9 @@ const scrollable = new Scrollable({
 
 このコードは `scrollable` を縦方向にスクロール可能にし、そのスクロールバーとして `myScrollbar` を使います。
 
-### ScrollbarLike
+### Scrollbar
 
-`ScrollbarLike` は、TypeScriptで次のように定義されます:
+`Scrollbar` は、TypeScriptで次のように定義されます:
 
 ```
 interface ScrollbarOperations {
@@ -27,7 +27,7 @@ interface ScrollbarOperations {
 	setBarProperties(posRate?: number | null, contentLength?: number | null, viewLength?: number | null): void;
 }
 
-type ScrollbarLike = g.E & ScrollbarOperations;
+type Scrollbar = g.E & ScrollbarOperations;
 ```
 
 すなわちスクロールバーは `g.E` のサブクラスとして実装され、かつ二つのプロパティを持つ必要があります:
@@ -48,7 +48,7 @@ type ScrollbarLike = g.E & ScrollbarOperations;
 
 ### デフォルトのスクロールバー
 
-akashic-scrollable が提供する `ScrollbarLike` の実装クラスは二つ、
+akashic-scrollable が提供する `Scrollbar` の実装クラスは二つ、
 デフォルトのスクロールバーである `NinePatchVerticalScrollbar` と `NinePatchHorizontalScrollbar` です。
 これらは名前のとおり、与えられた画像 (`g.Surface`) を9パッチ画像としてバーや背景の描画に用いるものです。
 (9パッチについては [libgdxの文書のintroduction][9patch] などを参照してください。)

@@ -7,8 +7,8 @@ In addition to the values for the constructor of `g.E`, the following options av
 |-------------|----|-----------|-------------|
 |`width`|`number`|The width of this entity and the width of the scrolled area. Unline `g.E`, this is required.|N/A|
 |`height`|`number`|The height of this entity and the height of the scrolled area. Unline `g.E`, this is required.|N/A|
-|`vertical`|`boolean` or `ScrollbarLike`|Enable/disable vertical scrolling.  If a `ScrollbarLike` is given, used as the vertical scrollbar.|`false`|
-|`horizontal`|`boolean` or `ScrollbarLike`|Enable/disable horizontal scrolling.  If a `ScrollbarLike` is given, used as the horizontal scrollbar.|`false`|
+|`vertical`|`boolean` or `Scrollbar`|Enable/disable vertical scrolling.  If a `Scrollbar` is given, used as the vertical scrollbar.|`false`|
+|`horizontal`|`boolean` or `Scrollbar`|Enable/disable horizontal scrolling.  If a `Scrollbar` is given, used as the horizontal scrollbar.|`false`|
 |`touchScroll`|`boolean`|Enable/disable scrolling by dragging/swiping on the entity itself.|`false`|
 |`insertBars`|`boolean`|If `true`, scrollbars are shown inside the entity's rectangle.|`false`|
 

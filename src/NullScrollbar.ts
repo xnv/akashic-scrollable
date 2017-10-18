@@ -1,4 +1,4 @@
-import { ScrollbarOperations } from "./ScrollbarLike";
+import { ScrollbarOperations } from "./Scrollbar";
 
 export class NullScrollbar extends g.E implements ScrollbarOperations {
 	onChangeBarPositionRate: g.Trigger<number>;  // never be fired.
