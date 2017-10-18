@@ -26,7 +26,7 @@ will be written later.
 
 MIT. See LICENSE for detail.
 
-[guide]: .
-[guide-ja]: .
-[apiref]: https://xnv.github.io/akashic-scrollable/apiref/
 [ae]: https://akashic-games.github.io/
+[guide]: https://xnv.github.io/akashic-scrollable/book/en/
+[guide-ja]: https://xnv.github.io/akashic-scrollable/book/ja/
+[apiref]: https://xnv.github.io/akashic-scrollable/apiref/index.html
