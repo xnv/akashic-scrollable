@@ -49,7 +49,7 @@ type ScrollbarLike = g.E & ScrollbarOperations;
 ### デフォルトのスクロールバー
 
 akashic-scrollable が提供する `ScrollbarLike` の実装クラスは二つ、
-デフォルトのスクロールバーである `NinePatchVerticalScrollbar` と `NinePathHorizontalScrollbar` です。
+デフォルトのスクロールバーである `NinePatchVerticalScrollbar` と `NinePatchHorizontalScrollbar` です。
 これらは名前のとおり、与えられた画像 (`g.Surface`) を9パッチ画像としてバーや背景の描画に用いるものです。
 (9パッチについては [libgdxの文書のintroduction][9patch] などを参照してください。)
 
