@@ -1,8 +1,8 @@
 # akashic-scrollable
 
-> 日本語の文書は [こちら][guide-ja] 。
-
 **akashic-scrollable** is a library for [Akashic Engine][ae] that provides scrolling/clipping entites.
+
+> 日本語の文書は [こちら][guide-ja] 。
 
 > Unfortunately, Akashic Engine does not provide English documentation yet.
 > Whole this library is documented in English just to be prepared for their future translation.
@@ -26,4 +26,7 @@ will be written later.
 
 MIT. See LICENSE for detail.
 
+[guide]: .
+[guide-ja]: .
+[apiref]: https://xnv.github.io/akashic-scrollable/apiref/
 [ae]: https://akashic-games.github.io/
