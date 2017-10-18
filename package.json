@@ -6,9 +6,11 @@
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "npm run build",
-    "clean": "rimraf lib && rimraf docs/apiref",
+    "clean": "rimraf lib",
     "build": "tsc -p ./",
-    "doc": "typedoc --hideGenerator --mode file --out docs/apiref/ --tsconfig ./tsconfig.json",
+    "doc:apiref": "rimraf docs/apiref && npm run doc:apiref:typedoc && npm run doc:apiref:remove-abspath",
+    "doc:apiref:typedoc": "typedoc --hideGenerator --mode file --out docs/apiref/ --tsconfig ./tsconfig.json",
+    "doc:apiref:remove-abspath": "replace '<li>\\s*Defined in\\s*[^<]*</li>' '' docs/apiref/ -r -q --include='*.html'",
     "lint": "tslint -c tslint.json src/**/*.ts",
     "test": "npm run lint"
   },
@@ -28,6 +30,7 @@
     "jasmine": "~2.1.1",
     "jasmine-reporters": "~2.0.4",
     "jasmine-terminal-reporter": "~0.9.1",
+    "replace": "~0.3.0",
     "rimraf": "~2.6.2",
     "tslint": "^3.10.2",
     "typedoc": "^0.8.0",
