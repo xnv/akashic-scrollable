@@ -237,9 +237,9 @@
                                 
                                 <h1 id="using-your-own-scrollbar">Using Your Own Scrollbar</h1>
 <p>As mentioned in <a href="options.html">the previous chapter</a>, you can use your own scrollbars.
-By giving a <code>ScrollbarLike</code> instance to the <code>vertical</code> or <code>horizontal</code> property of the constructor argument,
+By giving a <code>Scrollbar</code> instance to the <code>vertical</code> or <code>horizontal</code> property of the constructor argument,
 it will be used as the scrollbar instead of the default one.</p>
-<p>For example, if you have <code>myScrollbar: ScrollbarLike</code>, it can be used as:</p>
+<p>For example, if you have <code>myScrollbar: Scrollbar</code>, it can be used as:</p>
 <pre><code>const scrollable = new Scrollable({
     scene: scene,  // a g.Scene instance
     width: 100,
@@ -247,14 +247,14 @@ it will be used as the scrollbar instead of the default one.</p>
     vertical: myScrollbar
 });
 </code></pre><p>This makes <code>scrollable</code> verticall scrollable and its vertical scrollbar will be <code>myScrollbar</code>.</p>
-<h3 id="scrollbarlike">ScrollbarLike</h3>
-<p><code>ScrollbarLike</code> is defined by TypeScript as the following:</p>
+<h3 id="scrollbar">Scrollbar</h3>
+<p><code>Scrollbar</code> is defined by TypeScript as the following:</p>
 <pre><code>interface ScrollbarOperations {
     onChangeBarPositionRate: g.Trigger&lt;number&gt;;
     setBarProperties(posRate?: number | null, contentLength?: number | null, viewLength?: number | null): void;
 }
 
-type ScrollbarLike = g.E &amp; ScrollbarOperations;
+type Scrollbar = g.E &amp; ScrollbarOperations;
 </code></pre><p>This means that scrollbars must be implemented as a subclass of <code>g.E</code> and have two properties:
 <code>onChangeBarPositionRate</code> and <code>setBarProperties</code>.</p>
 <p>The former, <code>onChangeBarPositionRate</code>, must be a <code>g.Trigger&lt;number&gt;</code>.
@@ -271,7 +271,7 @@ It takes three arguments:</p>
 <p>any properties specified as <code>null</code> should not be changed.</p>
 <h3 id="default-scrollbars">Default Scrollbars</h3>
 <p>The default scrollbars, <code>NinePatchVerticalScrollbar</code> and <code>NinePatchHorizontalScrollbar</code> are
-the only <code>ScrollbarLike</code> implementations provided by akashic-scrollable.
+the only <code>Scrollbar</code> implementations provided by akashic-scrollable.
 As the names suggest, they use ninepatch images (<code>g.Surface</code>) to draw its bar and background.
 (If you are not familier with ninepatch, take a look at <a href="https://github.com/libgdx/libgdx/wiki/Ninepatches" target="_blank">a good introduction by libgdx</a>.)</p>
 <p>They are used when <code>true</code> is given to <code>vertical</code> or <code>horizontal</code> properits of the <code>Scrollable</code>&apos;s constructor argument respectively,
@@ -327,7 +327,7 @@ For example, if you have <code>yourOwnImage: g.Surface</code> then it can be use
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Using Your Own Scrollbar","level":"1.2.3","depth":2,"previous":{"title":"Options of Scrollable","level":"1.2.2","depth":2,"path":"options.md","ref":"options.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"language":"en","gitbook":"*"},"file":{"path":"scrollbar.md","mtime":"2017-10-18T12:08:17.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-10-18T12:09:21.796Z"},"basePath":".","book":{"language":"en"}});
+            gitbook.page.hasChanged({"page":{"title":"Using Your Own Scrollbar","level":"1.2.3","depth":2,"previous":{"title":"Options of Scrollable","level":"1.2.2","depth":2,"path":"options.md","ref":"options.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"language":"en","gitbook":"*"},"file":{"path":"scrollbar.md","mtime":"2017-10-18T12:46:41.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-10-18T14:19:14.075Z"},"basePath":".","book":{"language":"en"}});
         });
     </script>
 </div>
