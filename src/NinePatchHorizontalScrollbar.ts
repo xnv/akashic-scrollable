@@ -1,24 +1,25 @@
-import { ScrollbarOperations } from "./ScrollbarLike";
+import { ScrollbarOperations } from "./Scrollbar";
 
 /**
- * The type of the argument of `new DefaultVerticalScrollbar()`.
+ * The type of the argument of `new NinePatchHorizontalScrollbar()`.
  *
- * `new DefaultVerticalScrollbar()` の引数の型。
+ * `new NinePatchHorizontalScrollbar()` の引数の型。
  */
-export interface DefaultVerticalScrollbarParameterObject {
+export interface NinePatchHorizontalScrollbarParameterObject {
 	scene: g.Scene;
 	bgImage?: g.Surface;
 	image: g.Surface;
 }
 
+
 /**
- * The default vertical scrollbar entity.
- * Takes two images (as background and bar itself), use them in nine-patched style.
+ * The ninepatch image scrollbar entity.
+ * Takes two images as ninepatch images for the background and the bar itself.
  *
- * デフォルトの縦スクロールバー。
+ * 9パッチ画像の横スクロールバー。
  * 二つの画像(背景用・バー用)をとり、9パッチで拡大して利用する。
  */
-export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperations {
+export class NinePatchHorizontalScrollbar extends g.Pane implements ScrollbarOperations {
 	onChangeBarPositionRate: g.Trigger<number>;
 	private _bar: g.Pane;
 	private _barImage: g.Surface;
@@ -26,22 +27,22 @@ export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperati
 	private _deltaOrigin: number;
 	private _delta: number;
 
-	constructor(param: DefaultVerticalScrollbarParameterObject) {
+	constructor(param: NinePatchHorizontalScrollbarParameterObject) {
 		super({
 			scene: param.scene,
-			width: param.bgImage ? param.bgImage.width : param.image.width,
-			height: 0,
+			width: 0,
+			height: param.bgImage ? param.bgImage.height : param.image.height,
 			backgroundImage: param.bgImage,
-			backgroundEffector: param.bgImage && new g.NinePatchSurfaceEffector(param.scene.game, Math.floor(param.bgImage.width / 2))
+			backgroundEffector: param.bgImage && new g.NinePatchSurfaceEffector(param.scene.game, Math.floor(param.bgImage.height / 2))
 		});
 		this.onChangeBarPositionRate = new g.Trigger<number>();
 		this._bar = new g.Pane({
 			scene: param.scene,
 			parent: this,
-			width: param.bgImage ? param.bgImage.width : param.image.width,
-			height: 0,
+			width: 0,
+			height: param.bgImage ? param.bgImage.height : param.image.height,
 			backgroundImage: param.image,
-			backgroundEffector: new g.NinePatchSurfaceEffector(param.scene.game, Math.floor(param.image.width / 2)),
+			backgroundEffector: new g.NinePatchSurfaceEffector(param.scene.game, Math.floor(param.image.height / 2)),
 			touchable: true
 		});
 		this._barImage = param.image;
@@ -66,41 +67,41 @@ export class DefaultVerticalScrollbar extends g.Pane implements ScrollbarOperati
 		if (contentLength != null && this._contentLength !== contentLength) {
 			this._contentLength = contentLength;
 		}
-		if (viewLength != null && this.height !== viewLength) {
-			this.height = viewLength;
+		if (viewLength != null && this.width !== viewLength) {
+			this.width = viewLength;
 			this.invalidate();
 		}
-		let barHeight = 0;
-		if (this.height < this._contentLength)
-			barHeight = Math.floor(Math.max(this.height * this.height / this._contentLength, this._barImage.height));
-		const barPos = Math.floor(Math.max(posRate * this.height));
-		if (this._bar.height !== barHeight) {
-			this._bar.height = barHeight;
+		let barWidth = 0;
+		if (this.width < this._contentLength)
+			barWidth = Math.floor(Math.max(this.width * this.width / this._contentLength, this._barImage.width));
+		const barPos = Math.floor(Math.max(posRate * this.width));
+		if (this._bar.width !== barWidth) {
+			this._bar.width = barWidth;
 			this._bar.invalidate();
 		}
-		if (this._bar.y !== barPos) {
-			this._bar.y = barPos;
+		if (this._bar.x !== barPos) {
+			this._bar.x = barPos;
 			this._bar.modified();
 
 			// reset to be safe... unnecessary?
-			this._deltaOrigin = this._bar.y;
+			this._deltaOrigin = this._bar.x;
 			this._delta = 0;
 		}
 	}
 
 	private _handleBarPointDown(ev: g.PointDownEvent): void {
-		this._deltaOrigin = this._bar.y;
+		this._deltaOrigin = this._bar.x;
 		this._delta = 0;
 	}
 
 	private _handleBarPointMove(ev: g.PointMoveEvent): void {
-		this._delta += ev.prevDelta.y;
-		const limit = this.height - this._bar.height;
+		this._delta += ev.prevDelta.x;
+		const limit = this.width - this._bar.width;
 		const next = Math.min(Math.max(this._deltaOrigin + this._delta, 0), limit);
-		if (this._bar.y === next)
+		if (this._bar.x === next)
 			return;
-		this._bar.y = next;
+		this._bar.x = next;
 		this._bar.modified();
-		this.onChangeBarPositionRate.fire(next / this.height);
+		this.onChangeBarPositionRate.fire(next / this.width);
 	}
 }

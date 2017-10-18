@@ -1,10 +1,10 @@
 # Using Your Own Scrollbar
 
 As mentioned in [the previous chapter][opts], you can use your own scrollbars.
-By giving a `ScrollbarLike` instance to the `vertical` or `horizontal` property of the constructor argument,
+By giving a `Scrollbar` instance to the `vertical` or `horizontal` property of the constructor argument,
 it will be used as the scrollbar instead of the default one.
 
-For example, if you have `myScrollbar: ScrollbarLike`, it can be used as:
+For example, if you have `myScrollbar: Scrollbar`, it can be used as:
 
 ```
 const scrollable = new Scrollable({
@@ -17,9 +17,9 @@ const scrollable = new Scrollable({
 
 This makes `scrollable` verticall scrollable and its vertical scrollbar will be `myScrollbar`.
 
-### ScrollbarLike
+### Scrollbar
 
-`ScrollbarLike` is defined by TypeScript as the following:
+`Scrollbar` is defined by TypeScript as the following:
 
 ```
 interface ScrollbarOperations {
@@ -27,7 +27,7 @@ interface ScrollbarOperations {
 	setBarProperties(posRate?: number | null, contentLength?: number | null, viewLength?: number | null): void;
 }
 
-type ScrollbarLike = g.E & ScrollbarOperations;
+type Scrollbar = g.E & ScrollbarOperations;
 ```
 
 This means that scrollbars must be implemented as a subclass of `g.E` and have two properties:
@@ -50,7 +50,7 @@ any properties specified as `null` should not be changed.
 ### Default Scrollbars
 
 The default scrollbars, `NinePatchVerticalScrollbar` and `NinePatchHorizontalScrollbar` are
-the only `ScrollbarLike` implementations provided by akashic-scrollable.
+the only `Scrollbar` implementations provided by akashic-scrollable.
 As the names suggest, they use ninepatch images (`g.Surface`) to draw its bar and background.
 (If you are not familier with ninepatch, take a look at [a good introduction by libgdx][9patch].)
 

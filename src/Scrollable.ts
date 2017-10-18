@@ -1,8 +1,8 @@
 import { createDefaultScrollbarImage } from "./createDefaultScrollbarImage";
-import { ScrollbarLike } from "./ScrollbarLike";
+import { Scrollbar } from "./Scrollbar";
 import { NullScrollbar } from "./NullScrollbar";
-import { DefaultVerticalScrollbar } from "./DefaultVerticalScrollbar";
-import { DefaultHorizontalScrollbar } from "./DefaultHorizontalScrollbar";
+import { NinePatchVerticalScrollbar } from "./NinePatchVerticalScrollbar";
+import { NinePatchHorizontalScrollbar } from "./NinePatchHorizontalScrollbar";
 
 export class ScrolledContent extends g.E {
 	onModified: g.Trigger<void>;
@@ -73,25 +73,25 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 
 	/**
 	 * Enable/disable vertical scrolling.
-	 * If a `ScrollbarLike` is given, it is used as the vertical scrollbar instead of the default one.
+	 * If a `Scrollbar` is given, it is used as the vertical scrollbar instead of the default one.
 	 * If not specified, `false`.
 	 *
 	 * 縦方向のスクロールを有効にするか。
-	 * `ScrollbarLike` が指定された場合、有効になり、値はデフォルトの縦スクロールバーの代わりに利用される。
+	 * `Scrollbar` が指定された場合、有効になり、値はデフォルトの縦スクロールバーの代わりに利用される。
 	 * 省略された場合、偽。
 	 */
-	vertical?: boolean | ScrollbarLike;
+	vertical?: boolean | Scrollbar;
 
 	/**
 	 * Enable/disable horizontal scrolling.
-	 * If a `ScrollbarLike` is given, it is used as the horizontal scrollbar instead of the default one.
+	 * If a `Scrollbar` is given, it is used as the horizontal scrollbar instead of the default one.
 	 * If not specified, `false` .
 	 *
 	 * 縦方向のスクロールを有効にするか。
-	 * `ScrollbarLike` が指定された場合、有効になり、値はデフォルトの横スクロールバーの代わりに利用される。
+	 * `Scrollbar` が指定された場合、有効になり、値はデフォルトの横スクロールバーの代わりに利用される。
 	 * 省略された場合、偽。
 	 */
-	horizontal?: boolean | ScrollbarLike;
+	horizontal?: boolean | Scrollbar;
 
 	/**
 	 * Enable/disable scrolling by dragging on the entity itself.
@@ -142,8 +142,8 @@ export class Scrollable extends g.E {
 	private _extraDrawOffsetY: number;
 
 	private _contentContainer: ScrolledContentContainer;
-	private _horizontalBar: ScrollbarLike;
-	private _verticalBar: ScrollbarLike;
+	private _horizontalBar: Scrollbar;
+	private _verticalBar: Scrollbar;
 
 	private _surface: g.Surface;
 	private _renderer: g.Renderer;
@@ -263,14 +263,14 @@ export class Scrollable extends g.E {
 		}
 
 		this._verticalBar =
-			(param.vertical === true) ? new DefaultVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
+			(param.vertical === true) ? new NinePatchVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
 			(param.vertical) ? param.vertical :
 			new NullScrollbar({ scene: param.scene });
 		this._verticalBar.x = this._insetBars ? this.width - this._verticalBar.width : this.width;
 		this.append(this._verticalBar);
 		this._verticalBar.onChangeBarPositionRate.add(this._handleOnChangeVerticalPositionRate, this);
 		this._horizontalBar =
-			(param.horizontal === true) ? new DefaultHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
+			(param.horizontal === true) ? new NinePatchHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
 			(param.horizontal) ? param.horizontal :
 			new NullScrollbar({ scene: param.scene });
 		this._horizontalBar.y = this._insetBars ? this.height - this._horizontalBar.height : this.height;

@@ -31,4 +31,4 @@ export interface ScrollbarOperations {
  *
  * スクロールバーの型。
  */
-export type ScrollbarLike = g.E & ScrollbarOperations;
+export type Scrollbar = g.E & ScrollbarOperations;
