@@ -49,7 +49,7 @@ any properties specified as `null` should not be changed.
 
 ### Default Scrollbars
 
-The default scrollbars, `NinePatchVerticalScrollbar` and `NinePathHorizontalScrollbar` are
+The default scrollbars, `NinePatchVerticalScrollbar` and `NinePatchHorizontalScrollbar` are
 the only `ScrollbarLike` implementations provided by akashic-scrollable.
 As the names suggest, they use ninepatch images (`g.Surface`) to draw its bar and background.
 (If you are not familier with ninepatch, take a look at [a good introduction by libgdx][9patch].)
