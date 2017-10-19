@@ -13,9 +13,13 @@ export class ScrolledContent extends g.E {
 	destroy(): void {
 		this.onModified.destroy();
 		this.onModified = null;
+		super.destroy();
 	}
 	modified(isBubbling?: boolean) {
-		this.onModified.fire();
+		// Ugh! check existence since Akashic Engine calls this method while destroy()ing...
+		if (this.onModified) {
+			this.onModified.fire();
+		}
 		return super.modified(isBubbling);
 	}
 }
@@ -36,6 +40,7 @@ export class ScrolledContentContainer extends g.E {
 	destroy(): void {
 		this.onContentModified.destroy();
 		this.onContentModified = null;
+		super.destroy();
 	}
 
 	offsetContainer(): g.E {

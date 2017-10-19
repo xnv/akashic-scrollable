@@ -11,6 +11,7 @@ export class NullScrollbar extends g.E implements ScrollbarOperations {
 	destroy(): void {
 		this.onChangeBarPositionRate.destroy();
 		this.onChangeBarPositionRate = null;
+		super.destroy();
 	}
 
 	setBarProperties(posRate?: number | null, contentlength?: number | null, viewLength?: number | null): void {
