@@ -4,6 +4,50 @@ import { NullScrollbar } from "./NullScrollbar";
 import { NinePatchVerticalScrollbar } from "./NinePatchVerticalScrollbar";
 import { NinePatchHorizontalScrollbar } from "./NinePatchHorizontalScrollbar";
 
+class MomentumBuffer {
+	private _buf: g.CommonOffset[];
+	private _i: number;
+	private _disposed: number | null;
+	constructor(len: number) {
+		this._buf = new Array<g.CommonOffset>(len);
+		this._i = 0;
+		this._disposed = null;
+	}
+	addDelta(v: g.CommonOffset): void {
+		this._buf[this._i] = v;
+		this._i = (this._i + 1) % this._buf.length;
+		if (this._i === this._disposed)
+			this._disposed = null;
+	}
+	average(): g.CommonOffset {
+		let x = 0, y = 0, cnt = 0;
+		let i = (this._disposed != null) ? this._disposed : (this._i + 1) % this._buf.length;
+		for (; i !== this._i; i = (i + 1) % this._buf.length) {
+			x += this._buf[i].x;
+			y += this._buf[i].y;
+			++cnt;
+		}
+		return (cnt > 0) ? { x: x / cnt, y: y / cnt } : { x: 0, y: 0 };
+	}
+	reset(): void {
+		this._disposed = this._i;
+	}
+}
+
+export interface FrameTaskData {
+	type: "scroll" | "momentum";
+	count: number;
+	origX?: number;
+	origY?: number;
+	x?: number;
+	y?: number;
+	perX?: number;
+	perY?: number;
+	duration?: number;
+	easing?: (rate: number) => number;
+	done?: boolean;
+}
+
 export class ScrolledContent extends g.E {
 	onModified: g.Trigger<void>;
 	constructor(param: g.EParameterObject) {
@@ -108,6 +152,17 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	touchScroll?: boolean;
 
 	/**
+	 * Enable/disable momentum scrolling.
+	 * Works only with `touchScroll`.
+	 * If not specified, `true`.
+	 *
+	 * 慣性スクロールを有効にするか。
+	 * `touchScroll` の時のみ有効。
+	 * 省略された場合、真。
+	 */
+	momentumScroll?: boolean;
+
+	/**
 	 * Inset the scollbars or not.
 	 * If `true`, the scrollbars are shown inside the entity's rectangle defined by `this.width` and `this.height`.
 	 * Note when this value is `false`, this entity renders outside of the rectangle.
@@ -121,9 +176,25 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	insetBars?: boolean;
 
 	// (For future extension...)
-	// inertialScroll?: boolean;  // | InertialScrollPolicy
 	// fuzzyDirectionLock?: boolean;
 }
+
+export module EasingFunction {
+	export function Linear(r: number): number { return r; }
+	export function EaseInQuad(r: number): number { return (r * r); }
+	export function EaseOutQuad(r: number): number { return (-r * (r - 2)); }
+	export function EaseInOutQuad(r: number): number {
+		return ((r < 0.5) ? r * r * 2 : -((r * 2 - 1) * (r * 2 - 3) - 1) / 2);
+	}
+	export function EaseInQubic(r: number): number { return (r * r * r); }
+	export function EaseOutQubic(r: number): number { return (((r - 1) * (r - 1) * (r - 1) + 1)); }
+	export function EaseInOutQubic(r: number): number {
+		return ((r < 0.5) ? r * r * r * 4 : ((r * 2 - 2) * (r * 2 - 2) * (r * 2 - 2) + 2) / 2);
+	}
+	export function EaseInSine(r: number): number { return (-Math.cos(r * (Math.PI / 2)) + 1); }
+	export function EaseOutSine(r: number): number { return (Math.sin(r * (Math.PI / 2))); }
+	export function EaseInOutSine(r: number): number { return (-(Math.cos(Math.PI * r) - 1) / 2); }
+};
 
 /**
  * The entity class that provide scrolling/clipping.
@@ -133,6 +204,13 @@ export interface ScrollableParameterObject extends g.EParameterObject {
  * `this.content` の子孫エンティティはクリッピングされ、スクロールバーでスクロールできる。
  */
 export class Scrollable extends g.E {
+	/**
+	 * Easing functions for scroll functions (e.g. `scrollToX()`)
+	 *
+	 * スクロール関数(`scrollToX()` など)のためのイージング関数群。
+	 */
+	static Easing: typeof EasingFunction = EasingFunction;
+
 	// TODO images should be shared to reduce memory consumption? but how? multiple game instances should be considered.
 	private _bgImage: g.Surface;
 	private _barImage: g.Surface;
@@ -140,6 +218,7 @@ export class Scrollable extends g.E {
 	private _isVertical: boolean;
 	private _isHorizontal: boolean;
 	private _touchScroll: boolean;
+	private _momentumScroll: boolean;
 	private _insetBars: boolean;
 
 	private _extraDrawSize: number;
@@ -171,6 +250,8 @@ export class Scrollable extends g.E {
 	private _apiRequestedOffsetY: number;
 	private _beforeWidth: number;
 	private _beforeHeight: number;
+	private _frameTasks: FrameTaskData[];
+	private _momentumBuffer: MomentumBuffer;
 
 	/**
 	 * The content root entity.
@@ -195,8 +276,6 @@ export class Scrollable extends g.E {
 	 * 縦スクロールバーエンティティ。
 	 */
 	get verticalBar() { return this._verticalBar; }
-
-	// TODO getter/setter in percent
 
 	/**
 	 * The horizontal scroll offset in pixels.
@@ -252,9 +331,10 @@ export class Scrollable extends g.E {
 		this._isVertical = !!param.vertical;
 		this._isHorizontal = !!param.horizontal;
 		this._touchScroll = !!param.touchScroll;
+		this._momentumScroll = (param.momentumScroll != null) ? param.momentumScroll : true;
 		this._insetBars = !!param.insetBars;
 
-		this._extraDrawSize = 10;
+		this._extraDrawSize = 100;
 		this._extraDrawOffsetX = this._extraDrawSize;
 		this._extraDrawOffsetY = this._extraDrawSize;
 
@@ -302,11 +382,15 @@ export class Scrollable extends g.E {
 		this._apiRequestedOffsetY = null;
 		this._beforeWidth = param.width;
 		this._beforeHeight = param.height;
+		this._frameTasks = [];
+		this._momentumBuffer = new MomentumBuffer(3);
 
 		this._contentContainer.onContentModified.add(this._handleContentModified, this);
 		if (this._touchScroll) {
 			this.touchable = true;
+			this.pointDown.add(this._handlePointDown, this);
 			this.pointMove.add(this._handlePointMove, this);
+			this.pointUp.add(this._handlePointUp, this);
 		}
 		this._requestUpdateBoundingRect();
 		this._requestUpdateScrollbar();
@@ -344,6 +428,100 @@ export class Scrollable extends g.E {
 	}
 
 	/**
+	 * Returns the horizontal scroll offset in percentage.
+	 *
+	 * 横スクロールオフセットをパーセントで返す。
+	 */
+	getScrollOffsetPercentX(): number {
+		this._flushModification();
+		const w = this._contentBoundingWidth - this.width;
+		return (w > 0) ? 100 * this.scrollOffsetX / w : 0;
+	}
+
+	/**
+	 * Set the horizontal scroll offset in percentage.
+	 *
+	 * 横スクロールオフセットをパーセントで設定する。
+	 * @param perX  the horizontal scroll offset (in percent) 横スクロールオフセット(パーセント)
+	 */
+	setScrollOffsetPercentX(perX: number): void {
+		this._flushModification();
+		const w = Math.max(this._contentBoundingWidth - this.width, 0);
+		this.scrollOffsetX = Math.floor(perX * w / 100);
+	}
+
+	/**
+	 * Returns the vertical scroll offset in percentage.
+	 *
+	 * 縦スクロールオフセットをパーセントで返す。
+	 */
+	getScrollOffsetPercentY(): number {
+		this._flushModification();
+		const h = this._contentBoundingHeight - this.height;
+		return (h > 0) ? 100 * this.scrollOffsetY / h : 0;
+	}
+
+	/**
+	 * Set the vertical scroll offset in percentage.
+	 *
+	 * 縦スクロールオフセットをパーセントで設定する。
+	 * @param perY  the vertical scroll offset (in percent) 縦スクロールオフセット(パーセント)
+	 */
+	setScrollOffsetPercentY(perY: number): void {
+		this._flushModification();
+		const h = Math.max(this._contentBoundingHeight - this.height, 0);
+		this.scrollOffsetY = Math.floor(perY * h / 100);
+	}
+
+	/**
+	 * Scroll to the specified horizontal offset.
+	 *
+	 * 指定の横スクロール位置へスクロールする。
+	 * @param x  the horizontal scroll offset.  横スクロール位置。
+	 * @param duration  the duration to complete scroll.  スクロール時間。
+	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
+	 */
+	scrollToX(x: number, duration: number, easing?: (rate: number) => number): void {
+		this._addFrameTask({ type: "scroll", origX: -this._contentContainer.offsetContainer().x, x, duration, easing, count: 0 });
+	}
+
+	/**
+	 * Scroll to the specified vertical offset.
+	 *
+	 * 指定の縦スクロール位置へスクロールする。
+	 * @param x  the vertical scroll offset.  縦スクロール位置。
+	 * @param duration  the duration to complete scroll.  スクロール時間。
+	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
+	 */
+	scrollToY(y: number, duration: number, easing?: (rate: number) => number): void {
+		this._addFrameTask({ type: "scroll", origY: -this._contentContainer.offsetContainer().y, y, duration, easing, count: 0 });
+	}
+
+	/**
+	 * Scroll to the specified horizontal offset (in percentage).
+	 *
+	 * 指定の横スクロール位置(パーセント指定)へスクロールする。
+	 * @param x  the horizontal scroll offset in percentage.  横スクロール位置(パーセント)。
+	 * @param duration  the duration to complete scroll.  スクロール時間。
+	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
+	 */
+	scrollToPercentX(perX: number, duration: number, easing?: (rate: number) => number): void {
+		this._addFrameTask({ type: "scroll", origX: -this._contentContainer.offsetContainer().x, perX, duration, easing, count: 0 });
+	}
+
+	/**
+	 * Scroll to the specified vertical offset (in percentage).
+	 *
+	 * 指定の縦スクロール位置(パーセント指定)へスクロールする。
+	 * @param x  the vertical scroll offset in percentage.  縦スクロール位置(パーセント)。
+	 * @param duration  the duration to complete scroll.  スクロール時間。
+	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
+	 */
+	scrollToPercentY(perY: number, duration: number, easing?: (rate: number) => number): void {
+		this._addFrameTask({ type: "scroll", origY: -this._contentContainer.offsetContainer().y, perY, duration, easing, count: 0 });
+	}
+
+	/**
 	 * Render the entity.
 	 * Called by the engine implicitly. No need to call this directly.
 	 *
@@ -358,8 +536,8 @@ export class Scrollable extends g.E {
 		if (!this._isCached)
 			this._renderCache(camera);
 		if (this.children) {
-			var children = this.children;  // NOTE: Not cloned. Will break if modified while rendering
-			for (var i = 0; i < children.length; ++i) {
+			const children = this.children;  // NOTE: Not cloned. Will break if modified while rendering
+			for (let i = 0; i < children.length; ++i) {
 				if (children[i] !== this._contentContainer) {
 					children[i].render(renderer, camera);
 					continue;
@@ -421,6 +599,62 @@ export class Scrollable extends g.E {
 		return (0 <= point.x && point.x < w) && (0 <= point.y && point.y < h);
 	}
 
+	private _addFrameTask(task: FrameTaskData): void {
+		this._frameTasks.push(task);
+		if (this._frameTasks.length === 1) {
+			// use _contentContainer to hide the handler from users.
+			this._contentContainer.update.add(this._onUpdate, this);
+		}
+	}
+
+	private _cancelFrameTask(type: string): void {
+		for (let i = 0; i < this._frameTasks.length; ++i) {
+			const t = this._frameTasks[i];
+			if (t.type === type)
+				t.done = true;
+		}
+	}
+
+	private _onUpdate(): void {
+		// TODO no need to use a queue?
+		// TODO need callback that notifies done for scroll APIs?
+		for (let i = 0; i < this._frameTasks.length; ++i) {
+			const t = this._frameTasks[i];
+			if (t.done)
+				this._frameTasks.splice(i, 1);
+			++t.count;
+			switch (t.type) {
+			case "momentum":
+				const s = Math.pow(0.9, t.count);
+				const d = { x: t.x * s, y: t.y * s };
+				t.done = (!this._isHorizontal || Math.abs(d.x) < 0.1) && (!this._isVertical || Math.abs(d.y) < 0.1);
+				this._addScrollDelta(d);
+				break;
+			case "scroll":
+				this._flushModification();
+				const progress = Math.min(t.count * 1000 / (t.duration * this.scene.game.fps), 1);
+				const ratio = t.easing ? t.easing(progress) : progress;
+				if (t.x != null || t.perX != null) {
+					const destX = (t.x != null) ? t.x : t.perX * Math.max(this._contentBoundingWidth - this.width, 0) / 100;
+					const nextX = t.origX + ratio * (destX - t.origX);
+					this.scrollOffsetX = nextX;
+				}
+				if (t.y != null || t.perY != null) {
+					const destY = (t.y != null) ? t.y : t.perY * Math.max(this._contentBoundingHeight - this.height, 0) / 100;
+					const nextY = t.origY + ratio * (destY - t.origY);
+					this.scrollOffsetY = nextY;
+				}
+				t.done = (progress === 1);
+				break;
+			default:
+				throw new Error("Scrollable#_onUpdate: never reach");
+			}
+		}
+
+		if (this._frameTasks.length === 0)
+			this._contentContainer.update.remove(this._onUpdate, this);
+	}
+
 	private _handleContentModified(): void {
 		this._requestUpdateBoundingRect();
 	}
@@ -435,9 +669,27 @@ export class Scrollable extends g.E {
 		this._requestUpdateContentScroll();
 	}
 
+	private _handlePointDown(ev: g.PointDownEvent): void {
+		this._cancelFrameTask("momentum");
+		this._momentumBuffer.reset();
+	}
+
 	private _handlePointMove(ev: g.PointMoveEvent): void {
-		this._deltaX += ev.prevDelta.x;
-		this._deltaY += ev.prevDelta.y;
+		this._addScrollDelta(ev.prevDelta);
+		this._momentumBuffer.addDelta(ev.prevDelta);
+	}
+
+	private _handlePointUp(ev: g.PointUpEvent): void {
+		if (this._momentumScroll) {
+			const d = this._momentumBuffer.average();
+			if ((this._isHorizontal && Math.abs(d.x) > 2) || (this._isVertical && Math.abs(d.y) > 2))
+				this._addFrameTask({ type: "momentum", x: d.x, y: d.y, count: 0 });
+		}
+	}
+
+	private _addScrollDelta(delta: g.CommonOffset): void {
+		this._deltaX += delta.x;
+		this._deltaY += delta.y;
 		this._requestUpdateScrollbar();
 		this._requestUpdateContentScroll();
 		this.modified();
@@ -476,6 +728,10 @@ export class Scrollable extends g.E {
 	}
 
 	private _flushModification(): void {
+		if (!this._isFlushRequested) {
+			// guard for excessive flush (e.g. caused by getScrollOffsetPercentX() following modification)
+			return;
+		}
 		this._isFlushRequested = false;
 		let boundingRectChanged = false;
 		if (this._isUpdateBoundingRectRequested) {
@@ -493,24 +749,29 @@ export class Scrollable extends g.E {
 	}
 
 	private _updateBoundingRect(): boolean {
+		const size = this._calculateBoundingRectSize();
+		let changed = false;
+		if (this._contentBoundingWidth !== size.width) {
+			this._contentBoundingWidth = size.width;
+			changed = true;
+		}
+		if (this._contentBoundingHeight !== size.height) {
+			this._contentBoundingHeight = size.height;
+			changed = true;
+		}
+		return changed;
+	}
+
+	private _calculateBoundingRectSize(): g.CommonSize {
 		// Ugh! This class ignores cameras.
 		// The dimensions of the scrollable area are determined by the bounding rect which depends on cameras.
 		// This means the same operation on scrollable ares may be interpreted in multiple ways...
 		// Calling `calculateBoundingRect()` here, outside of the rendering phase, is valid as we ignore cameras.
 		const content = this._contentContainer.content();
 		const br = content.calculateBoundingRect();
-		const bw = br.right - br.left;
-		const bh = br.bottom - br.top;
-		let changed = false;
-		if (this._contentBoundingWidth !== bw) {
-			this._contentBoundingWidth = bw;
-			changed = true;
-		}
-		if (this._contentBoundingHeight !== bh) {
-			this._contentBoundingHeight = bh;
-			changed = true;
-		}
-		return changed;
+		const width = br.right - br.left;
+		const height = br.bottom - br.top;
+		return { width, height };
 	}
 
 	private _updateContentScroll(): void {
