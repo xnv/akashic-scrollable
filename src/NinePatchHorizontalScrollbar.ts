@@ -33,7 +33,8 @@ export class NinePatchHorizontalScrollbar extends g.Pane implements ScrollbarOpe
 			width: 0,
 			height: param.bgImage ? param.bgImage.height : param.image.height,
 			backgroundImage: param.bgImage,
-			backgroundEffector: param.bgImage && new g.NinePatchSurfaceEffector(param.scene.game, Math.floor(param.bgImage.height / 2))
+			backgroundEffector: param.bgImage && new g.NinePatchSurfaceEffector(param.scene.game, Math.floor(param.bgImage.height / 2)),
+			touchable: true
 		});
 		this.onChangeBarPositionRate = new g.Trigger<number>();
 		this._bar = new g.Pane({
@@ -50,6 +51,7 @@ export class NinePatchHorizontalScrollbar extends g.Pane implements ScrollbarOpe
 		this._deltaOrigin = 0;
 		this._delta = 0;
 
+		this.pointDown.add(this._handlePointDown, this);
 		this._bar.pointDown.add(this._handleBarPointDown, this);
 		this._bar.pointMove.add(this._handleBarPointMove, this);
 	}
@@ -89,6 +91,14 @@ export class NinePatchHorizontalScrollbar extends g.Pane implements ScrollbarOpe
 		}
 	}
 
+	private _handlePointDown(ev: g.PointDownEvent): void {
+		if (ev.point.x < this._bar.x) {
+			this._changePositionRate(this._bar.x - this._bar.width);
+		} else if (ev.point.x > this._bar.x + this._bar.width) {
+			this._changePositionRate(this._bar.x + this._bar.width);
+		}
+	}
+
 	private _handleBarPointDown(ev: g.PointDownEvent): void {
 		this._deltaOrigin = this._bar.x;
 		this._delta = 0;
@@ -96,8 +106,12 @@ export class NinePatchHorizontalScrollbar extends g.Pane implements ScrollbarOpe
 
 	private _handleBarPointMove(ev: g.PointMoveEvent): void {
 		this._delta += ev.prevDelta.x;
+		this._changePositionRate(this._deltaOrigin + this._delta);
+	}
+
+	private _changePositionRate(rate: number): void {
 		const limit = this.width - this._bar.width;
-		const next = Math.min(Math.max(this._deltaOrigin + this._delta, 0), limit);
+		const next = Math.min(Math.max(rate, 0), limit);
 		if (this._bar.x === next)
 			return;
 		this._bar.x = next;
