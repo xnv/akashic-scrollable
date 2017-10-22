@@ -1,6 +1,6 @@
 {
   "name": "@xnv/akashic-scrollable",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Scrolling/clipping for Akashic Engine",
   "typings": "lib/index.d.ts",
   "main": "lib/index.js",
