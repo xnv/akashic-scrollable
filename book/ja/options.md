@@ -10,5 +10,6 @@
 |`vertical`|`boolean` or `Scrollbar`|縦スクロールの有効・無効。 `Scrollbar` が与えられた場合、縦スクロールバーとして使われます。|`false`|
 |`horizontal`|`boolean` or `Scrollbar`|横スクロールの有効・無効。 `Scrollbar` が与えられた場合、横スクロールバーとして使われます。|`false`|
 |`touchScroll`|`boolean`|タッチスクロール(エンティティ全体のスワイプ操作によるスクロール)の有効・無効。|`false`|
-|`insertBars`|`boolean`|真の場合、スクロールバーをエンティティ矩形の内側に配置する。|`false`|
+|`momentumScroll`|`boolean`|慣性スクロールの有効・無効。 `touchScroll` 時のみ動作します。|`true`|
+|`insertBars`|`boolean`|真の場合、スクロールバーをエンティティ矩形の内側に配置します。|`false`|
 
