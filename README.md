@@ -10,6 +10,10 @@
 
 - Simple API
   - Just `append()` entities to `Scrollable#content` then it will be scrollable.
+- Battery included
+  - Touch scrolling
+  - Momemtum scrolling
+  - Smooth scroll API with customizable easing behaviour
 - Highly customizable scrollbar
 
 ## Documents
