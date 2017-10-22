@@ -1,0 +1,11 @@
+{
+  "name": "javascript-game-sample",
+  "version": "0.1.0",
+  "dependencies": {
+    "@xnv/akashic-scrollable": {
+      "version": "0.0.2-beta.0",
+      "from": "@xnv/akashic-scrollable@0.0.2-beta.0",
+      "resolved": "https://registry.npmjs.org/@xnv/akashic-scrollable/-/akashic-scrollable-0.0.2-beta.0.tgz"
+    }
+  }
+}

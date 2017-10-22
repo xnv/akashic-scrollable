@@ -10,5 +10,6 @@ In addition to the values for the constructor of `g.E`, the following options av
 |`vertical`|`boolean` or `Scrollbar`|Enable/disable vertical scrolling.  If a `Scrollbar` is given, used as the vertical scrollbar.|`false`|
 |`horizontal`|`boolean` or `Scrollbar`|Enable/disable horizontal scrolling.  If a `Scrollbar` is given, used as the horizontal scrollbar.|`false`|
 |`touchScroll`|`boolean`|Enable/disable scrolling by dragging/swiping on the entity itself.|`false`|
+|`momentumScroll`|`boolean`|Enable/disable momentum scrolling. Works only with `touchScroll`.|`true`|
 |`insertBars`|`boolean`|If `true`, scrollbars are shown inside the entity's rectangle.|`false`|
 
