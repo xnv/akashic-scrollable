@@ -8,11 +8,12 @@
     "prepublish": "npm run build",
     "clean": "rimraf lib",
     "build": "tsc -p ./",
+    "build:test": "tsc -p ./spec/",
     "doc:apiref": "rimraf docs/apiref && npm run doc:apiref:typedoc && npm run doc:apiref:remove-abspath",
     "doc:apiref:typedoc": "typedoc --hideGenerator --mode file --out docs/apiref/ --tsconfig ./tsconfig.json",
     "doc:apiref:remove-abspath": "replace '<li>\\s*Defined in\\s*[^<]*</li>' '' docs/apiref/ -r -q --include='*.html'",
     "lint": "tslint -c tslint.json src/**/*.ts",
-    "test": "npm run lint"
+    "test": "npm run build:test && jasmine && npm run lint"
   },
   "author": "xnv",
   "license": "MIT",
@@ -27,6 +28,8 @@
   },
   "devDependencies": {
     "@akashic/akashic-engine": "~2.0.0",
+    "@types/jasmine": "~2.6.2",
+    "@xnv/headless-akashic": "0.0.1-beta.1",
     "jasmine": "~2.1.1",
     "jasmine-reporters": "~2.0.4",
     "jasmine-terminal-reporter": "~0.9.1",
