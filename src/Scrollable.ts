@@ -721,9 +721,13 @@ export class Scrollable extends g.E {
 		// We should not depend on the rendering phase (which is also performed once a frame) because it may be skipped.
 		this.scene.game._callSceneAssetHolderHandler({
 			callHandler: () => {
-				if (this.destroyed()) return;  // may be destroyed... (since the scene may be dropped here...)
+				// Assert it is still alive for akashic-engine@2.6.2 or earlier
+				// since they don't check AssetHolder#destroyed() before invoking callHandler().
+				if (this.destroyed()) return;
+
 				this._flushModification();
-			}
+			},
+			destroyed: () => this.destroyed()
 		} as any);
 	}
 
