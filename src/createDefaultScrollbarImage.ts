@@ -36,7 +36,8 @@ export function createDefaultScrollbarImage(
 	const r = s.renderer();
 	r.begin();
 	drawCircle(r, outerRadius, outerRadius, outerRadius, outerCssColor);
-	drawCircle(r, outerRadius, outerRadius, innerRadius, innerCssColor);
+	if (innerRadius && innerCssColor)
+		drawCircle(r, outerRadius, outerRadius, innerRadius, innerCssColor);
 	r.end();
 	return s;
 }

@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES2015",
     "types": ["node"],
     "lib": ["ES2015"],
-    "noImplicitAny": true,
     "declaration": true,
+    "strict": true,
+    "allowUmdGlobalAccess": true,
     "module": "commonjs" ,
     "outDir": "./lib"
   },
   "files": [
-    "node_modules/@akashic/akashic-engine/lib/main.d.ts",
+    "node_modules/@akashic/akashic-engine/index.runtime.d.ts",
     "src/index.ts"
   ]
 }

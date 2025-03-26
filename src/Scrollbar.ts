@@ -23,7 +23,7 @@ export interface ScrollbarOperations {
 	 * @param contentLength the length of the whole scrolled content. スクロールされる内容の長さ。
 	 * @param viewLength the length of the displayed area. 表示される範囲の長さ。
 	 */
-	setBarProperties(posRate?: number | null, contentLength?: number | null, viewLength?: number | null): void;
+	setBarProperties(posRate: number, contentLength: number, viewLength: number): void;
 }
 
 /**

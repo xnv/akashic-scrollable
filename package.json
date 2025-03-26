@@ -12,7 +12,7 @@
     "doc:apiref": "rimraf docs/apiref && npm run doc:apiref:typedoc && npm run doc:apiref:remove-abspath",
     "doc:apiref:typedoc": "typedoc --hideGenerator --mode file --out docs/apiref/ --tsconfig ./tsconfig.json",
     "doc:apiref:remove-abspath": "replace '<li>\\s*Defined in\\s*[^<]*</li>' '' docs/apiref/ -r -q --include='*.html'",
-    "lint": "tslint -c tslint.json src/**/*.ts",
+    "lint": "biome lint ./src",
     "test": "npm run build:test && jasmine && npm run lint"
   },
   "author": "xnv",
@@ -27,16 +27,13 @@
     "url": "xnv/akashic-scrollable.git"
   },
   "devDependencies": {
-    "@akashic/akashic-engine": "~2.0.0",
-    "@types/jasmine": "~2.6.2",
-    "@xnv/headless-akashic": "0.0.2",
-    "jasmine": "~2.1.1",
-    "jasmine-reporters": "~2.0.4",
-    "jasmine-terminal-reporter": "~0.9.1",
-    "replace": "~0.3.0",
+    "@akashic/akashic-engine": "^3.20.2",
+    "@akashic/headless-akashic": "^4.7.0",
+    "@biomejs/biome": "1.9.4",
+    "@types/node": "^22.13.13",
+    "replace": "^1.2.2",
     "rimraf": "~2.6.2",
-    "tslint": "^3.10.2",
-    "typedoc": "^0.8.0",
-    "typescript": "2.1.6"
+    "typedoc": "^0.28.1",
+    "typescript": "^5.8.2"
   }
 }
