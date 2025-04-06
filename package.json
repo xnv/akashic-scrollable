@@ -7,13 +7,13 @@
   "scripts": {
     "prepublish": "npm run build",
     "clean": "rimraf lib",
-    "build": "tsc -p ./",
+    "build": "tsc -p ./tsconfig.build.json",
     "build:test": "tsc -p ./spec/",
     "doc:apiref": "rimraf docs/apiref && npm run doc:apiref:typedoc && npm run doc:apiref:remove-abspath",
     "doc:apiref:typedoc": "typedoc --hideGenerator --mode file --out docs/apiref/ --tsconfig ./tsconfig.json",
     "doc:apiref:remove-abspath": "replace '<li>\\s*Defined in\\s*[^<]*</li>' '' docs/apiref/ -r -q --include='*.html'",
     "lint": "biome lint ./src",
-    "test": "npm run build:test && jasmine && npm run lint"
+    "test": "vitest run && npm run lint"
   },
   "author": "xnv",
   "license": "MIT",
@@ -31,9 +31,11 @@
     "@akashic/headless-akashic": "^4.7.0",
     "@biomejs/biome": "1.9.4",
     "@types/node": "^22.13.13",
+    "@vitest/coverage-v8": "^3.1.1",
     "replace": "^1.2.2",
     "rimraf": "~2.6.2",
     "typedoc": "^0.28.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.1"
   }
 }
