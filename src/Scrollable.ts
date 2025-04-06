@@ -189,6 +189,11 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	// fuzzyDirectionLock?: boolean;
 }
 
+/**
+ * Easing functions for scroll functions (e.g. `scrollToX()`)
+ *
+ * スクロール関数(`scrollToX()` など)のためのイージング関数群。
+ */
 export namespace EasingFunction {
 	export function Linear(r: number): number { return r; }
 	export function EaseInQuad(r: number): number { return (r * r); }
@@ -499,7 +504,7 @@ export class Scrollable extends g.E {
 	 * Scroll to the specified vertical offset.
 	 *
 	 * 指定の縦スクロール位置へスクロールする。
-	 * @param x  the vertical scroll offset.  縦スクロール位置。
+	 * @param y  the vertical scroll offset.  縦スクロール位置。
 	 * @param duration  the duration to complete scroll.  スクロール時間。
 	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
 	 */
@@ -511,7 +516,7 @@ export class Scrollable extends g.E {
 	 * Scroll to the specified horizontal offset (in percentage).
 	 *
 	 * 指定の横スクロール位置(パーセント指定)へスクロールする。
-	 * @param x  the horizontal scroll offset in percentage.  横スクロール位置(パーセント)。
+	 * @param perX  the horizontal scroll offset in percentage.  横スクロール位置(パーセント)。
 	 * @param duration  the duration to complete scroll.  スクロール時間。
 	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
 	 */
@@ -523,7 +528,7 @@ export class Scrollable extends g.E {
 	 * Scroll to the specified vertical offset (in percentage).
 	 *
 	 * 指定の縦スクロール位置(パーセント指定)へスクロールする。
-	 * @param x  the vertical scroll offset in percentage.  縦スクロール位置(パーセント)。
+	 * @param perY  the vertical scroll offset in percentage.  縦スクロール位置(パーセント)。
 	 * @param duration  the duration to complete scroll.  スクロール時間。
 	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
 	 */
