@@ -1,5 +1,5 @@
 import { createDefaultScrollbarImage } from "./createDefaultScrollbarImage";
-import { Scrollbar } from "./Scrollbar";
+import type { Scrollbar } from "./Scrollbar";
 import { NullScrollbar } from "./NullScrollbar";
 import { NinePatchVerticalScrollbar } from "./NinePatchVerticalScrollbar";
 import { NinePatchHorizontalScrollbar } from "./NinePatchHorizontalScrollbar";
@@ -20,7 +20,9 @@ class MomentumBuffer {
 			this._disposed = null;
 	}
 	average(): g.CommonOffset {
-		let x = 0, y = 0, cnt = 0;
+		let x = 0;
+		let y = 0;
+		let cnt = 0;
 		let i = (this._disposed != null) ? this._disposed : (this._i + 1) % this._buf.length;
 		for (; i !== this._i; i = (i + 1) % this._buf.length) {
 			x += this._buf[i].x;
@@ -34,8 +36,8 @@ class MomentumBuffer {
 	}
 }
 
-export interface FrameTaskData {
-	type: "scroll" | "momentum";
+export type FrameTaskDataScroll = {
+	type: "scroll";
 	count: number;
 	origX?: number;
 	origY?: number;
@@ -43,10 +45,18 @@ export interface FrameTaskData {
 	y?: number;
 	perX?: number;
 	perY?: number;
-	duration?: number;
+	duration: number;
 	easing?: (rate: number) => number;
 	done?: boolean;
 }
+export type FrameTaskDataMomentum = {
+	type:  "momentum";
+	count: number;
+	x: number;
+	y: number;
+	done?: boolean;
+};
+export type FrameTaskData = FrameTaskDataScroll | FrameTaskDataMomentum;
 
 export class ScrolledContent extends g.E {
 	onModified: g.Trigger<void>;
@@ -56,7 +66,7 @@ export class ScrolledContent extends g.E {
 	}
 	destroy(): void {
 		this.onModified.destroy();
-		this.onModified = null;
+		this.onModified = null!;
 		super.destroy();
 	}
 	modified(isBubbling?: boolean) {
@@ -83,7 +93,7 @@ export class ScrolledContentContainer extends g.E {
 
 	destroy(): void {
 		this.onContentModified.destroy();
-		this.onContentModified = null;
+		this.onContentModified = null!;
 		super.destroy();
 	}
 
@@ -179,7 +189,12 @@ export interface ScrollableParameterObject extends g.EParameterObject {
 	// fuzzyDirectionLock?: boolean;
 }
 
-export module EasingFunction {
+/**
+ * Easing functions for scroll functions (e.g. `scrollToX()`)
+ *
+ * スクロール関数(`scrollToX()` など)のためのイージング関数群。
+ */
+export namespace EasingFunction {
 	export function Linear(r: number): number { return r; }
 	export function EaseInQuad(r: number): number { return (r * r); }
 	export function EaseOutQuad(r: number): number { return (-r * (r - 2)); }
@@ -212,8 +227,8 @@ export class Scrollable extends g.E {
 	static Easing: typeof EasingFunction = EasingFunction;
 
 	// TODO images should be shared to reduce memory consumption? but how? multiple game instances should be considered.
-	private _bgImage: g.Surface;
-	private _barImage: g.Surface;
+	private _bgImage: g.Surface | null;
+	private _barImage: g.Surface | null;
 
 	private _isVertical: boolean;
 	private _isHorizontal: boolean;
@@ -229,10 +244,10 @@ export class Scrollable extends g.E {
 	private _horizontalBar: Scrollbar;
 	private _verticalBar: Scrollbar;
 
-	private _surface: g.Surface;
-	private _renderer: g.Renderer;
+	private _surface: g.Surface | null;
+	private _renderer: g.Renderer | null;
 	private _isCached: boolean;
-	private _renderedCamera: g.Camera;
+	private _renderedCamera: g.Camera | null | undefined;
 
 	private _renderOffsetX: number;
 	private _renderOffsetY: number;
@@ -242,12 +257,12 @@ export class Scrollable extends g.E {
 	private _isUpdateContentScrollRequested: boolean;
 	private _isUpdateScrollbarRequested: boolean;
 	private _isFlushRequested: boolean;
-	private _lastNotifiedVerticalRate: number;
-	private _lastNotifiedHorizontalRate: number;
+	private _lastNotifiedVerticalRate: number | null;
+	private _lastNotifiedHorizontalRate: number | null;
 	private _deltaX: number;
 	private _deltaY: number;
-	private _apiRequestedOffsetX: number;
-	private _apiRequestedOffsetY: number;
+	private _apiRequestedOffsetX: number | null;
+	private _apiRequestedOffsetY: number | null;
 	private _beforeWidth: number;
 	private _beforeHeight: number;
 	private _frameTasks: FrameTaskData[];
@@ -340,7 +355,7 @@ export class Scrollable extends g.E {
 
 		this._contentContainer = new ScrolledContentContainer({ scene: param.scene, parent: this });
 		this._horizontalBar = new NullScrollbar({ scene: param.scene, parent: this });
-		this._verticalBar = null;
+		this._verticalBar = null!;
 
 		if (param.vertical === true || param.horizontal === true) {
 			this._bgImage = createDefaultScrollbarImage(param.scene.game, 7, "rgba(255, 255, 255, 0.2)", 4, "rgba(218, 218, 218, 0.5)");
@@ -348,14 +363,14 @@ export class Scrollable extends g.E {
 		}
 
 		this._verticalBar =
-			(param.vertical === true) ? new NinePatchVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
+			(param.vertical === true) ? new NinePatchVerticalScrollbar({ scene: param.scene, bgImage: this._bgImage!, image: this._barImage! }) :
 			(param.vertical) ? param.vertical :
 			new NullScrollbar({ scene: param.scene });
 		this._verticalBar.x = this._insetBars ? this.width - this._verticalBar.width : this.width;
 		this.append(this._verticalBar);
 		this._verticalBar.onChangeBarPositionRate.add(this._handleOnChangeVerticalPositionRate, this);
 		this._horizontalBar =
-			(param.horizontal === true) ? new NinePatchHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage, image: this._barImage }) :
+			(param.horizontal === true) ? new NinePatchHorizontalScrollbar({ scene: param.scene, bgImage: this._bgImage!, image: this._barImage! }) :
 			(param.horizontal) ? param.horizontal :
 			new NullScrollbar({ scene: param.scene });
 		this._horizontalBar.y = this._insetBars ? this.height - this._horizontalBar.height : this.height;
@@ -402,26 +417,26 @@ export class Scrollable extends g.E {
 	 * このエンティティを破棄する。
 	 */
 	destroy(): void {
-		this._contentContainer = null;  // destroy() called as destroying this.children.
-		this._horizontalBar = null;     // ditto.
-		this._verticalBar = null;       // ditto.
+		this._contentContainer = null!;  // destroy() called as destroying this.children.
+		this._horizontalBar = null!;     // ditto.
+		this._verticalBar = null!;       // ditto.
 		if (this._surface) {
 			this._surface.destroy();
-			this._surface = null;
+			this._surface = null!;
 		}
-		this._renderer = null;
+		this._renderer = null!;
 		this._isCached = false;
-		this._renderedCamera = null;
+		this._renderedCamera = null!;
 		this._renderOffsetX = 0;
 		this._renderOffsetY = 0;
 
 		if (this._bgImage) {
 			this._bgImage.destroy();
-			this._bgImage = null;
+			this._bgImage = null!;
 		}
 		if (this._barImage) {
 			this._barImage.destroy();
-			this._barImage = null;
+			this._barImage = null!;
 		}
 
 		super.destroy();
@@ -489,7 +504,7 @@ export class Scrollable extends g.E {
 	 * Scroll to the specified vertical offset.
 	 *
 	 * 指定の縦スクロール位置へスクロールする。
-	 * @param x  the vertical scroll offset.  縦スクロール位置。
+	 * @param y  the vertical scroll offset.  縦スクロール位置。
 	 * @param duration  the duration to complete scroll.  スクロール時間。
 	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
 	 */
@@ -501,7 +516,7 @@ export class Scrollable extends g.E {
 	 * Scroll to the specified horizontal offset (in percentage).
 	 *
 	 * 指定の横スクロール位置(パーセント指定)へスクロールする。
-	 * @param x  the horizontal scroll offset in percentage.  横スクロール位置(パーセント)。
+	 * @param perX  the horizontal scroll offset in percentage.  横スクロール位置(パーセント)。
 	 * @param duration  the duration to complete scroll.  スクロール時間。
 	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
 	 */
@@ -513,7 +528,7 @@ export class Scrollable extends g.E {
 	 * Scroll to the specified vertical offset (in percentage).
 	 *
 	 * 指定の縦スクロール位置(パーセント指定)へスクロールする。
-	 * @param x  the vertical scroll offset in percentage.  縦スクロール位置(パーセント)。
+	 * @param perY  the vertical scroll offset in percentage.  縦スクロール位置(パーセント)。
 	 * @param duration  the duration to complete scroll.  スクロール時間。
 	 * @param easing  the easing function. (e.g. Scrollable.Easing.Linear)  イージング関数。
 	 */
@@ -603,7 +618,7 @@ export class Scrollable extends g.E {
 		this._frameTasks.push(task);
 		if (this._frameTasks.length === 1) {
 			// use _contentContainer to hide the handler from users.
-			this._contentContainer.update.add(this._onUpdate, this);
+			this._contentContainer.update.add(this._handleUpdate, this);
 		}
 	}
 
@@ -615,7 +630,7 @@ export class Scrollable extends g.E {
 		}
 	}
 
-	private _onUpdate(): void {
+	private _handleUpdate(): void {
 		// TODO no need to use a queue?
 		// TODO need callback that notifies done for scroll APIs?
 		for (let i = 0; i < this._frameTasks.length; ++i) {
@@ -624,35 +639,39 @@ export class Scrollable extends g.E {
 				this._frameTasks.splice(i, 1);
 			++t.count;
 			switch (t.type) {
-			case "momentum":
-				const s = Math.pow(0.9, t.count);
-				const d = { x: t.x * s, y: t.y * s };
-				t.done = (!this._isHorizontal || Math.abs(d.x) < 0.1) && (!this._isVertical || Math.abs(d.y) < 0.1);
-				this._addScrollDelta(d);
-				break;
-			case "scroll":
-				this._flushModification();
-				const progress = Math.min(t.count * 1000 / (t.duration * this.scene.game.fps), 1);
-				const ratio = t.easing ? t.easing(progress) : progress;
-				if (t.x != null || t.perX != null) {
-					const destX = (t.x != null) ? t.x : t.perX * Math.max(this._contentBoundingWidth - this.width, 0) / 100;
-					const nextX = t.origX + ratio * (destX - t.origX);
-					this.scrollOffsetX = nextX;
+				case "momentum": {
+					const s = 0.9 ** t.count;
+					const d = { x: t.x * s, y: t.y * s };
+					t.done = (!this._isHorizontal || Math.abs(d.x) < 0.1) && (!this._isVertical || Math.abs(d.y) < 0.1);
+					this._addScrollDelta(d);
+					break;
 				}
-				if (t.y != null || t.perY != null) {
-					const destY = (t.y != null) ? t.y : t.perY * Math.max(this._contentBoundingHeight - this.height, 0) / 100;
-					const nextY = t.origY + ratio * (destY - t.origY);
-					this.scrollOffsetY = nextY;
+				case "scroll": {
+					this._flushModification();
+					const progress = Math.min(t.count * 1000 / (t.duration * this.scene.game.fps), 1);
+					const ratio = t.easing ? t.easing(progress) : progress;
+					const { x, perX, origX, y, perY, origY } = t;
+					if (origX != null && (x != null || perX != null)) {
+						const destX = (x != null) ? x : perX! * Math.max(this._contentBoundingWidth - this.width, 0) / 100;
+						const nextX = origX + ratio * (destX - origX);
+						this.scrollOffsetX = nextX;
+					}
+					if (origY != null && (y != null || perY != null)) {
+						const destY = (y != null) ? y : perY! * Math.max(this._contentBoundingHeight - this.height, 0) / 100;
+						const nextY = origY + ratio * (destY - origY);
+						this.scrollOffsetY = nextY;
+					}
+					t.done = (progress === 1);
+					break;
 				}
-				t.done = (progress === 1);
-				break;
-			default:
-				throw new Error("Scrollable#_onUpdate: never reach");
+				default: {
+					throw new Error("Scrollable#_onUpdate: never reach");
+				}
 			}
 		}
 
 		if (this._frameTasks.length === 0)
-			this._contentContainer.update.remove(this._onUpdate, this);
+			this._contentContainer.update.remove(this._handleUpdate, this);
 	}
 
 	private _handleContentModified(): void {
@@ -719,20 +738,11 @@ export class Scrollable extends g.E {
 
 		// Ugh! A dirty hack to flush all changes only once a frame, after all events consumed.
 		// We should not depend on the rendering phase (which is also performed once a frame) because it may be skipped.
-		this.scene.game._callSceneAssetHolderHandler({
-			callHandler: () => {
-				// Assert it is still alive for akashic-engine@2.6.2 or earlier
-				// since they don't check AssetHolder#destroyed() before invoking callHandler().
-				if (this.destroyed()) return;
-
-				this._flushModification();
-			},
-			destroyed: () => this.destroyed()
-		} as any);
+		this.scene.game._pushPostTickTask(this._flushModification, this);
 	}
 
 	private _flushModification(): void {
-		if (!this._isFlushRequested) {
+		if (this.destroyed() || !this._isFlushRequested) {
 			// guard for excessive flush (e.g. caused by getScrollOffsetPercentX() following modification)
 			return;
 		}
@@ -773,6 +783,8 @@ export class Scrollable extends g.E {
 		// Calling `calculateBoundingRect()` here, outside of the rendering phase, is valid as we ignore cameras.
 		const content = this._contentContainer.content();
 		const br = content.calculateBoundingRect();
+		if (!br)
+			return { width: 0, height: 0 };
 		const width = br.right - br.left;
 		const height = br.bottom - br.top;
 		return { width, height };
@@ -800,6 +812,7 @@ export class Scrollable extends g.E {
 			const x1 = Math.max(Math.min(x1raw, 0), Math.min(this.width - this._contentBoundingWidth, 0));
 			offsetContainer.x = x1;
 			this._renderOffsetX += (offsetContainer.x - x0);
+			offsetContainer.modified();
 		}
 		if (this._isVertical) {
 			const y0 = offsetContainer.y;
@@ -808,6 +821,7 @@ export class Scrollable extends g.E {
 			const y1 = Math.max(Math.min(y1raw, 0), Math.min(this.height - this._contentBoundingHeight, 0));
 			offsetContainer.y = y1;
 			this._renderOffsetY += y1 - y0;
+			offsetContainer.modified();
 		}
 		if (Math.abs(this._renderOffsetX) > this._extraDrawSize ||
 				Math.abs(this._renderOffsetY) > this._extraDrawSize) {
@@ -832,16 +846,17 @@ export class Scrollable extends g.E {
 			this._surface = this.scene.game.resourceFactory.createSurface(surfaceWidth, surfaceHeight);
 			this._renderer = this._surface.renderer();
 		}
-		this._renderer.begin();
+		const renderer = this._renderer!;
+		renderer.begin();
 		if (!isNew)
-			this._renderer.clear();
-		this._renderer.save();
-		this._renderer.translate(this._extraDrawOffsetX, this._extraDrawOffsetY);
-		this._contentContainer.render(this._renderer, camera);
-		this._renderer.restore();
+			renderer.clear();
+		renderer.save();
+		renderer.translate(this._extraDrawOffsetX, this._extraDrawOffsetY);
+		this._contentContainer.render(renderer, camera);
+		renderer.restore();
 		this._renderOffsetX = 0;
 		this._renderOffsetY = 0;
-		this._renderer.end();
+		renderer.end();
 		this._isCached = true;
 	}
 }

@@ -1,6 +1,6 @@
 # Using Your Own Scrollbar
 
-As mentioned in [the previous chapter][opts], you can use your own scrollbars.
+You can use your own scrollbars.
 By giving a `Scrollbar` instance to the `vertical` or `horizontal` property of the constructor argument,
 it will be used as the scrollbar instead of the default one.
 
@@ -73,5 +73,4 @@ const scrollable = new Scrollable({
 });
 ```
 
-[opts]: ./options.md
 [9patch]: https://github.com/libgdx/libgdx/wiki/Ninepatches

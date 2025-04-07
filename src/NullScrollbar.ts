@@ -1,4 +1,4 @@
-import { ScrollbarOperations } from "./Scrollbar";
+import type { ScrollbarOperations } from "./Scrollbar";
 
 export class NullScrollbar extends g.E implements ScrollbarOperations {
 	onChangeBarPositionRate: g.Trigger<number>;  // never be fired.
@@ -10,11 +10,11 @@ export class NullScrollbar extends g.E implements ScrollbarOperations {
 
 	destroy(): void {
 		this.onChangeBarPositionRate.destroy();
-		this.onChangeBarPositionRate = null;
+		this.onChangeBarPositionRate = null!;
 		super.destroy();
 	}
 
-	setBarProperties(posRate?: number | null, contentlength?: number | null, viewLength?: number | null): void {
+	setBarProperties(_posRate?: number | null, _contentlength?: number | null, _viewLength?: number | null): void {
 		// do nothing
 	}
 }

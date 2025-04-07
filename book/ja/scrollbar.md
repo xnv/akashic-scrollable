@@ -1,6 +1,6 @@
 # カスタムスクロールバー
 
-[前節][opts] で述べた通り、スクロールバーのデザインは任意にカスタマイズできます。
+スクロールバーのデザインは任意にカスタマイズできます。
 `Scrollable` のコンストラクタ引数の `vertical`, `horizontal` プロパティに `Scrollbar` のインスタンスを与えると、
 デフォルトのスクロールバーに代えてそのインスタンスが利用されます。
 
@@ -75,6 +75,5 @@ const scrollable = new Scrollable({
 デフォルトと異なり、この場合スクロールバーの背景部分はなくなります。
 背景の画像を指定する場合には `bgImage` プロパティを利用してください。
 
-[opts]: ./options.md
 [9patch]: https://github.com/libgdx/libgdx/wiki/Ninepatches
 

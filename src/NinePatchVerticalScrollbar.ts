@@ -1,4 +1,4 @@
-import { ScrollbarOperations } from "./Scrollbar";
+import type { ScrollbarOperations } from "./Scrollbar";
 
 /**
  * The type of the argument of `new NinePatchVerticalScrollbar()`.
@@ -50,21 +50,21 @@ export class NinePatchVerticalScrollbar extends g.Pane implements ScrollbarOpera
 		this._deltaOrigin = 0;
 		this._delta = 0;
 
-		this.pointDown.add(this._handlePointDown, this);
-		this._bar.pointDown.add(this._handleBarPointDown, this);
-		this._bar.pointMove.add(this._handleBarPointMove, this);
+		this.onPointDown.add(this._handlePointDown, this);
+		this._bar.onPointDown.add(this._handleBarPointDown, this);
+		this._bar.onPointMove.add(this._handleBarPointMove, this);
 	}
 
 	destroy(): void {
 		this.onChangeBarPositionRate.destroy();
-		this.onChangeBarPositionRate = null;
-		this._bar = null;
-		this._barImage = null;
+		this.onChangeBarPositionRate = null!;
+		this._bar = null!;
+		this._barImage = null!;
 		this._contentLength = 0;
 		super.destroy();
 	}
 
-	setBarProperties(posRate?: number | null, contentLength?: number | null, viewLength?: number | null): void {
+	setBarProperties(posRate: number, contentLength: number, viewLength: number): void {
 		if (contentLength != null && this._contentLength !== contentLength) {
 			this._contentLength = contentLength;
 		}
