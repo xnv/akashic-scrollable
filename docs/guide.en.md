@@ -8,9 +8,17 @@
 
 Use `akashic` command provided by [akashic-cli (ja)][cli] at the game directory root (which includes game.json):
 
-```
+```sh
 akashic install @xnv/akashic-scrollable
 ```
+
+The game must be using Akashic Engine v3. If you are using v2, use the following:
+
+```sh
+akashic install @xnv/akashic-scrollable@1
+```
+
+> v1 is not supported.
 
 [cli]: https://github.com/akashic-games/akashic-cli
 
