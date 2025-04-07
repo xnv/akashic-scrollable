@@ -1,11 +1,11 @@
 {
   "name": "@xnv/akashic-scrollable",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Scrolling/clipping for Akashic Engine",
   "typings": "lib/index.d.ts",
   "main": "lib/index.js",
   "scripts": {
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "clean": "rimraf lib",
     "build": "tsc -p ./tsconfig.build.json",
     "doc:apiref": "rimraf docs/apiref && npm run doc:apiref:typedoc",
