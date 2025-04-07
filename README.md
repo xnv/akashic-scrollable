@@ -18,7 +18,7 @@
 
 ## Documents
 
-- [Guide][guide] or [利用ガイド (ja)][guide-ja]
+- [Guide][guide] or [利用ガイド (in Japanese)][guide-ja]
 - [Samples][sample] (not yet)
 - [API Reference][apiref]
 
@@ -27,8 +27,8 @@
 MIT. See [LICENSE][license] for detail.
 
 [ae]: https://akashic-games.github.io/
-[guide]: https://xnv.github.io/akashic-scrollable/book/en/
-[guide-ja]: https://xnv.github.io/akashic-scrollable/book/ja/
+[guide]: ./docs/guide.en.md
+[guide-ja]: ./docs/guide.ja.md
 [sample]: https://xnv.github.io/akashic-scrollable/samples/
 [apiref]: https://xnv.github.io/akashic-scrollable/apiref/index.html
 [license]: https://github.com/xnv/akashic-scrollable/blob/master/LICENSE
